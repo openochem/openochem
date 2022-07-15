@@ -1,0 +1,23 @@
+current_dir=`dirname $0`
+JAVA_FILELIST=`find $1 -iname "*java" -type f`
+for i in $JAVA_FILELIST
+do
+  $current_dir/java_replacer $2 $i ${i}.new
+  rm $i
+  mv ${i}.new $i
+done
+
+XML_FILELIST=`find $1 -iname "*xml" -type f`
+for i in $XML_FILELIST
+do
+  $current_dir/xml_replacer $2 $i ${i}.new
+  rm $i
+  mv ${i}.new $i
+done
+XML_FILELIST=`find $1 -iname "*xslt" -type f`
+for i in $XML_FILELIST
+do
+  $current_dir/xml_replacer $2 $i ${i}.new
+  rm $i
+  mv ${i}.new $i
+done

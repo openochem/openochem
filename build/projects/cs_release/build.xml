@@ -1,0 +1,159 @@
+<project name="MyProject" default="all" >
+	<target name="MakeDirs" description="Make some dirs">
+		<mkdir dir="classes"/>
+		<mkdir dir="classes/Workflow"/>
+		<mkdir dir="classes/metaserver-api"/>
+		<mkdir dir="classes/workflow-api"/>
+		<mkdir dir="classes/CSAPI"/>
+		<mkdir dir="classes/DockingAPI"/>
+		<mkdir dir="classes/calculation-servers"/>
+		<mkdir dir="classes/release/jars"/>
+	</target>
+
+	<path id="CS-Classpath" >
+		<fileset dir="src/Workflow/lib/">
+			<include name="*.jar"/>
+    	        </fileset>
+		<fileset dir="/tomcat-libs">
+			<include name="*.jar"/>
+    	        </fileset>
+		<fileset dir="classes/release/jars">
+		    <include name="*.jar"/>
+		</fileset>
+    </path>
+         
+        <target name="DAPI_compile" description="Compile DockingAPI"  depends="MakeDirs">
+        <javac destdir="classes/DockingAPI" classpathref="CS-Classpath" source="1.8" target="1.8" debug="true" debuglevel="lines,vars,source">
+               <src path="src/DockingAPI/src"/>
+        </javac>
+        </target>
+        
+
+        
+        <target name="DAPI_jar" description="Create docking-api.jar" depends="DAPI_compile">
+               <jar destfile="classes/release/jars/docking-api.jar">
+               <fileset dir="classes/DockingAPI">
+                    <include name="**/*.class"/>
+                    <exclude name="**/CVS"/>
+               </fileset>
+               <fileset dir="src/DockingAPI/src">
+                    <include name="**/*.*"/>
+                    <exclude name="**/*.java"/>
+               </fileset>                          
+               </jar>
+        </target>
+         
+   
+	<target name="API_compile" description="Compile metaserver-api"  depends="MakeDirs">
+        <javac destdir="classes/metaserver-api" classpathref="CS-Classpath" source="1.8" target="1.8" debug="true" debuglevel="lines,vars,source">
+               <src path="src/metaserver-api/src"/>
+        </javac>
+        </target>
+	
+	<target name="API_jar" description="Create ms-api.jar" depends="API_compile">
+               <jar destfile="classes/release/jars/ms-api.jar">
+               <fileset dir="classes/metaserver-api">
+		    <include name="**/*.class"/>
+                    <exclude name="**/CVS"/>
+               </fileset>
+               <fileset dir="src/metaserver-api/src">
+		    <include name="**/*.*"/>
+		    <exclude name="**/*.java"/>
+               </fileset>			   
+    	       </jar>
+        </target>
+
+	<target name="WFAPI_compile" description="Compile WFAPI"  depends="API_jar">
+    	<javac destdir="classes/workflow-api" classpathref="CS-Classpath" source="1.8" target="1.8" debug="true" debuglevel="lines,vars,source">
+               <src path="src/workflow-api/src"/>
+        </javac>
+        </target>
+	
+	<target name="WFAPI_jar" description="Create an WFAPI JAR file" depends="WFAPI_compile">
+               <jar destfile="classes/release/jars/wf-api.jar">
+               <fileset dir="classes/workflow-api">
+		    <include name="**/*.class"/>
+                    <exclude name="**/CVS"/>
+               </fileset>
+               <fileset dir="src/workflow-api/src">
+		    <include name="**/*.*"/>
+		    <exclude name="**/*.java"/>
+               </fileset>			   
+    	       </jar>
+        </target>
+
+	<target name="CSAPI_compile" description="Compile CSAPI"  depends="WFAPI_jar">
+        <javac destdir="classes/CSAPI" classpathref="CS-Classpath" source="1.8" target="1.8" debug="true" debuglevel="lines,vars,source">
+               <src path="src/cs-api/src"/>
+        </javac>
+        </target>
+	
+	<target name="CSAPI_jar" description="Create an CSAPI JAR file" depends="CSAPI_compile">
+               <jar destfile="classes/release/jars/cs-api.jar">
+               <fileset dir="classes/CSAPI">
+		    <include name="**/*.class"/>
+                    <exclude name="**/CVS"/>
+               </fileset>
+               <fileset dir="src/cs-api/src">
+		    <include name="**/*.*"/>
+		    <exclude name="**/*.java"/>
+               </fileset>			   
+    	       </jar>
+        </target>
+
+	<target name="WF_compile" description="Compile WF"  depends="CSAPI_jar">
+        <javac destdir="classes/Workflow" classpathref="CS-Classpath" source="1.8" target="1.8" includes="**" debug="true" debuglevel="lines,vars,source">
+               <src path="src/Workflow/src"/>
+        </javac>
+        </target>
+	
+	<target name="WF_jar" description="Create an WF JAR file" depends="WF_compile">
+               <jar destfile="classes/release/jars/workflow.jar">
+	       <manifest>
+	           <attribute name="Main-Class" value="qspr.workflow.Workflow"/>
+		</manifest>
+               <fileset dir="classes/Workflow">
+		    <include name="**/*.class"/>
+                    <exclude name="**/CVS"/>
+               </fileset>
+               <fileset dir="src/Workflow/src">
+		    <include name="**/*.*"/>
+		    <exclude name="**/*.java"/>
+               </fileset>			   
+    	       </jar>
+        </target>
+	
+	<target name="SamplesCompile" description="Samples" depends="WF_jar,DAPI_jar">
+	<javac destdir="classes/calculation-servers" classpathref="CS-Classpath" source="1.8" target="1.8" debug="true" debuglevel="lines,vars,source">
+	    <src path="src/calculation-servers/src"/>
+	</javac>
+	</target>
+	
+	<target name="SamplesJar" description="Create calc-servers.jar" depends="SamplesCompile">
+	    <jar destfile="classes/release/jars/calc-servers.jar">
+		<fileset dir="classes/calculation-servers">
+		    <include name="**/*.class"/>
+                    <exclude name="**/CVS"/>
+		</fileset>
+		<fileset dir="src/calculation-servers/src">
+		    <include name="**/*.*"/>
+		    <exclude name="**/*.java"/>
+               </fileset>			   
+	    </jar>
+	</target>
+	
+    <target name="Cleanup" depends="SamplesJar">
+	<delete dir="workflow-api"/>
+	<delete dir="Metaserver"/>
+	<delete dir="metaserver-api"/>
+    <delete dir="cs-api"/>
+	<delete dir="Samples"/>	
+    </target>
+
+    <target name="all" description="Do the build"  depends="Cleanup"/>
+
+    <target name="clean" description="clean up">
+		<echo>I'm cleaning up.</echo>
+        <delete dir="classes"/>
+    </target>
+</project>

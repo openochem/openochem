@@ -1,0 +1,22 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.eadmet</groupId>
+		<artifactId>parent-project</artifactId>
+		<version>2.0-SNAPSHOT</version>
+		<relativePath>../parent-project</relativePath>
+	</parent>
+	<artifactId>integration-tests</artifactId>
+	<name>Integration Tests Collection</name>
+	<packaging>pom</packaging>
+	<profiles>
+		<profile>
+			<id>sonar</id>
+			<properties>
+				<sonar.dynamic>reuseReports</sonar.dynamic>
+				<sonar.surefire.reportsPath>/home/eadmet/ochem/last_build/ochem-junit/</sonar.surefire.reportsPath>
+			</properties>
+		</profile>
+	</profiles>
+</project>

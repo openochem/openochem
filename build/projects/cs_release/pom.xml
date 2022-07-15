@@ -1,0 +1,24 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.eadmet</groupId>
+		<artifactId>parent-project</artifactId>
+		<version>2.0-SNAPSHOT</version>
+		<relativePath>../parent-project</relativePath>
+	</parent>
+
+	<artifactId>cs-global</artifactId>
+	<packaging>pom</packaging>
+
+	<modules>
+		<module>parent-project</module>
+		<module>ochem-utils</module>
+		<module>metaserver-api</module>
+		<module>cs-api</module>
+		<module>workflow-api</module>
+		<module>Workflow</module>
+		<module>calculation-servers</module>
+	</modules>
+</project>

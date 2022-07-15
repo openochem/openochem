@@ -1,0 +1,164 @@
+<project name="MyProject" default="all" >
+	<target name="MakeDirs" description="Make some dirs">
+		<mkdir dir="classes"/>
+		<mkdir dir="classes/qspr-class"/>
+		<mkdir dir="classes/toxity-class"/>
+		<mkdir dir="classes/metaapi-class"/>
+		<mkdir dir="classes/wfapi-class"/>
+		<mkdir dir="classes/csapi-class"/>
+		<mkdir dir="classes/tests-class"/>
+	</target>
+
+	<path id="myclasspath" >
+	    <fileset dir="classes/Toxity/WEB-INF/lib">
+		<include name="*.jar"/>
+    	    </fileset>
+	    <fileset dir="/tomcat-libs/">
+		<include name="*.jar"/>
+    	    </fileset>
+		<fileset dir="src/selenium-tests/lib">
+				<include name="*.jar"/>
+	    </fileset>
+	</path>
+
+    <target name="Toxity_copy_nonsrc" description="Copy non-source files" depends="MakeDirs">
+	<copy todir="classes/Toxity">
+	    <fileset dir="src/Toxity">
+		<exclude name="**/src/**"/>
+	    </fileset>
+	</copy>
+    </target>
+
+    <target name="Toxity_copy_inline" description="Copy inline files from src to classes" depends="Toxity_copy_nonsrc">
+	<copy todir="classes/Toxity/WEB-INF/classes">
+	    <fileset dir="src/Toxity/src">
+		<exclude name="**/*.java"/>
+	    </fileset>
+	</copy>
+    </target>
+
+    <target name="API_compile" description="Compile API"  depends="Toxity_copy_inline">
+	<javac destdir="classes/metaapi-class" classpathref="myclasspath" source="1.8" target="1.8" debug="true" debuglevel="lines,vars,source">
+		<src path="src/metaserver-api/src"/>
+	</javac>
+    </target>
+
+     <target name="API_jar" description="Create an API JAR file" depends="API_compile">
+	  <jar destfile="classes/Toxity/WEB-INF/lib/ms-api.jar">
+	         <fileset dir="classes/metaapi-class">
+	             <include name="**/*.class"/>
+	             <exclude name="**/CVS"/>
+	         </fileset>
+	         <fileset dir="src/metaserver-api/src">
+	               <include name="**/*.*"/>
+	               <exclude name="**/*.java"/>
+	          </fileset>
+	     </jar>
+	</target>
+
+	 <target name="WFAPI_compile" description="Compile WFAPI"  depends="API_jar">
+		 <javac destdir="classes/wfapi-class" classpathref="myclasspath" source="1.8" target="1.8" debug="true" debuglevel="lines,vars,source">
+	         <src path="src/workflow-api/src"/>
+		</javac>
+	</target>
+
+	<target name="WFAPI_jar" description="Create an WFAPI JAR file" depends="WFAPI_compile">
+	       <jar destfile="classes/Toxity/WEB-INF/lib/wf-api.jar">
+              <fileset dir="classes/wfapi-class">
+                  <include name="**/*.class"/>
+                  <exclude name="**/CVS"/>
+             </fileset>
+            <fileset dir="src/workflow-api/src">
+                <include name="**/*.*"/>
+                <exclude name="**/*.java"/>
+           </fileset>
+	  </jar>
+	 </target>
+
+
+    <target name="CSAPI_compile" description="Compile API"  depends="WFAPI_jar">
+	<javac destdir="classes/csapi-class" classpathref="myclasspath" source="1.8" target="1.8" debug="true" debuglevel="lines,vars,source">
+	    <src path="src/cs-api/src"/>
+	</javac>
+    </target>
+
+    <target name="CSAPI_jar" description="Create an API JAR file" depends="CSAPI_compile">
+	<jar destfile="classes/Toxity/WEB-INF/lib/cs-api.jar">
+	<fileset dir="classes/csapi-class">
+	    <include name="**/*.class"/>
+	    <exclude name="**/CVS"/>
+	</fileset>
+	<fileset dir="src/cs-api/src">
+	    <include name="**/*.*"/>
+	    <exclude name="**/*.java"/>
+	</fileset>
+	</jar>
+    </target>
+
+
+    <target name="QSPR_compile" description="Compile QSPR lib"  depends="CSAPI_jar">
+        <javac destdir="classes/qspr-class" classpathref="myclasspath" source="1.8" target="1.8" debug="true" debuglevel="lines,vars,source">
+               <src path="src/QSPR/src"/>
+        </javac>
+    </target>
+
+
+	<target name="QSPR_jar" description="Create a QSPR JAR file" depends="QSPR_compile">
+        <jar destfile="classes/Toxity/WEB-INF/lib/ochem-core.jar">
+               <fileset dir="classes/qspr-class">
+					<include name="**/*.class"/>
+                    <exclude name="**/CVS"/>
+               </fileset>
+               <fileset dir="src/QSPR/src">
+			<include name="**/*.*"/>
+			<exclude name="**/*.java"/>
+               </fileset>
+        </jar>
+    </target>
+
+	<target name="Tests_compile" description="Compile tests"  depends="QSPR_jar">
+	        <javac destdir="classes/tests-class" classpathref="myclasspath" source="1.8" target="1.8" debug="true" debuglevel="lines,vars,source">
+	                <src path="src/selenium-tests/src"/>
+	        </javac>
+	</target>
+
+	    <target name="Tests_jar" description="Create a JAR file of selenium tests" depends="Tests_compile">
+	        <jar destfile="classes/Toxity/WEB-INF/lib/tests.jar">
+	            <fileset dir="classes/tests-class">
+	            	<include name="**/*.class"/>
+	                <exclude name="**/CVS"/>
+	            </fileset>
+	            <fileset dir="src/selenium-tests/src">
+	            	<include name="**/*.*"/>
+	            	<exclude name="**/*.java"/>
+	            </fileset>                     
+	        </jar>
+	    </target>
+
+	
+    <target name="Toxity_compile" description="Compile Toxity WebApp"  depends="Tests_jar">
+        <javac destdir="classes/Toxity/WEB-INF/classes" classpathref="myclasspath" source="1.8" target="1.8" debug="true" debuglevel="lines,vars,source">
+               <src path="src/Toxity/src"/>
+        </javac>
+    </target>
+
+<!--
+    <target name="Toxity_war" description="Create Toxity WAR"  depends="Toxity_compile">
+		<war destfile="classes/classes/Toxity.war" webxml="Toxity/WEB-INF/web.xml">
+			<fileset dir="Toxity">
+				<exclude name="**/src/**"/>
+			</fileset>
+			<lib dir="Toxity/WEB-INF/lib">
+				<include name="**/*.jar"/>
+			</lib>
+			<webinf dir="Toxity/WEB-INF"/>
+			<classes dir="classes/toxity-class"/>
+			<classes dir="Toxity/src">
+				<exclude name="**/*.java"/>
+			</classes>
+		</war>
+	</target>
+-->
+    <target name="all" description="Do the build"  depends="Toxity_compile"/>
+
+</project>

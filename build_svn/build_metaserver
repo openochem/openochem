@@ -1,0 +1,63 @@
+#!/bin/bash
+
+set -u
+set -e
+
+pwd=`pwd`
+project_dir=$pwd/release/tmp/metaserver
+cd ../build; pwdp=`pwd`
+build_file=$pwdp/projects/metaserver/pom.xml
+cd $pwd
+
+source commons
+production_check
+
+mkdir -p $project_dir
+
+if $cleanup_before; then
+   rm -rf $project_dir
+   mkdir -p $project_dir
+fi
+
+if [ "$checkout_strategy" == "copy" ]; then
+	if [ ! -z "$release_id" ]; then
+		./switch_workspace $release_id
+	else
+		./switch_workspace default
+	fi
+	./update_workspace
+fi
+
+    checkout qspr-r/$website_branch/parent-project $project_dir/parent-project
+    checkout qspr-r/$metaserver_branch/ochem-utils $project_dir/ochem-utils
+    checkout metaserver/$metaserver_branch/metaserver-api $project_dir/metaserver-api
+    checkout metaserver/$metaserver_branch/MetaServer $project_dir/MetaServer
+    checkout metaserver/$metaserver_branch/ochem-commons $project_dir/ochem-commons
+    [ "$force_open_source" == "false" ] && checkout metaserver/$metaserver_branch/chemaxon-plugins $project_dir/chemaxon-plugins
+	svn log --revision HEAD $svnhost/metaserver/$metaserver_branch | sed -n "s/r\([0-9]*\) | \([a-zA-Z]*\) | \([^ ]* [^ ]*\).*/\1\n\2\n\3/p" > $project_dir/MetaServer/src/main/webapp/version.info
+	date +%Y-%m-%d\ %H:%M:%S >> $project_dir/MetaServer/src/main/webapp/version.info
+	echo `env | grep SSH_CONNECTION  | awk -F ' ' {'print $1'} | awk -F '=' {'print $2'}` >> $project_dir/MetaServer/src/main/webapp/version.info
+	
+	rm -rf `find $project_dir -iname .svn`
+	
+
+    local_install_component $project_dir/parent-project
+    local_install_component $project_dir/ochem-utils
+    local_install_component $project_dir/metaserver-api
+    local_install_component $project_dir/ochem-commons
+    [ "$force_open_source" == "false" ] && local_install_component $project_dir/chemaxon-plugins
+
+    echo "Packaging metaserver..."
+    cd $project_dir
+    cp $build_file .
+    mvn clean package
+    echo "Done."
+    cd $pwd
+    
+    maven_war=$project_dir/MetaServer/target/metaserver-2.0-SNAPSHOT.war
+    cp $maven_war $pwd/release/metaserver.war
+    
+if $cleanup_after; then
+    rm -rf $project_dir
+fi
+

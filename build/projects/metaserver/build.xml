@@ -1,0 +1,64 @@
+<project name="MyProject" default="all" >
+	<target name="MakeDirs" description="Make some dirs">
+		<mkdir dir="classes"/>
+		<mkdir dir="classes/metaserver-class"/>
+		<mkdir dir="classes/metaapi-class"/>
+	</target>
+
+	<path id="myclasspath" >
+		<fileset dir="src/MetaServer/WEB-INF/lib/">
+			<include name="*.jar"/>
+    	        </fileset>
+		<fileset dir="/tomcat-libs/">
+			<include name="*.jar"/>
+    	        </fileset>
+         </path>
+   
+	<target name="API_compile" description="Compile API"  depends="MakeDirs">
+        <javac destdir="classes/metaapi-class" classpathref="myclasspath" source="1.8" target="1.8" debug="true" debuglevel="lines,vars,source">
+               <src path="src/metaserver-api/src"/>
+        </javac>
+        </target>
+	
+	<target name="API_jar" description="Create an API JAR file" depends="API_compile">
+               <jar destfile="src/MetaServer/WEB-INF/lib/ms-api.jar">
+               <fileset dir="classes/metaapi-class">
+		    <include name="**/*.class"/>
+                    <exclude name="**/CVS"/>
+               </fileset>
+               <fileset dir="src/metaserver-api/src">
+		    <include name="**/*.*"/>
+		    <exclude name="**/*.java"/>
+               </fileset>			   
+    	       </jar>
+        </target>
+
+    <target name="MetaServer_compile" description="Compile MetaServer WebApp"  depends="API_jar">
+        <javac destdir="classes/metaserver-class" classpathref="myclasspath" source="1.8" target="1.8" debug="true" debuglevel="lines,vars,source">
+               <src path="src/MetaServer/src"/>
+        </javac>
+    </target>
+
+    <target name="MetaServer_war" description="Create MetaServer WAR"  depends="MetaServer_compile">
+		<war destfile="classes/metaserver.war" webxml="src/MetaServer/WEB-INF/web.xml">
+			<fileset dir="src/MetaServer">
+				<exclude name="**/src/**"/>
+			</fileset>
+			<lib dir="src/MetaServer/WEB-INF/lib">
+				<include name="**/*.jar"/>
+			</lib>
+			<webinf dir="src/MetaServer/WEB-INF"/>
+			<classes dir="classes/metaserver-class"/>
+			<classes dir="src/MetaServer/src">
+				<exclude name="**/*.java"/>
+			</classes>
+		</war>
+	</target>
+
+    <target name="all" description="Do the build"  depends="MetaServer_war"/>
+
+    <target name="clean" description="clean up">
+		<echo>I'm cleaning up.</echo>
+        <delete dir="build"/>
+    </target>
+</project>

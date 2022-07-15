@@ -1,0 +1,47 @@
+#!/bin/bash
+
+set -u
+set -e
+
+pwd=`pwd`
+project_dir=$pwd/release/tmp/metaserver
+build_file=$pwd/projects/metaserver/pom.xml
+
+source commons
+production_check
+
+mkdir -p $project_dir
+
+if $cleanup_before; then
+   rm -rf $project_dir
+   mkdir -p $project_dir
+fi
+
+    
+    cd $pwd
+   
+   cp -a ochem-code/. $project_dir/
+    git log -1 > $project_dir/MetaServer/src/main/webapp/version.info
+    date +%Y-%m-%d\ %H:%M:%S >> $project_dir/MetaServer/src/main/webapp/version.info
+    echo `env | grep SSH_CONNECTION  | awk -F ' ' {'print $1'} | awk -F '=' {'print $2'}` >> $project_dir/MetaServer/src/main/webapp/version.info
+	
+    rm -rf `find $project_dir -iname .svn`
+	
+    local_install_component $project_dir/parent-project
+    local_install_component $project_dir/ochem-utils
+    local_install_component $project_dir/metaserver-api
+    local_install_component $project_dir/ochem-commons
+
+    echo "Packaging metaserver..."
+    cd $project_dir
+    cp $build_file .
+    mvn clean package
+    echo "Done."
+    cd $pwd
+    
+    maven_war=$project_dir/MetaServer/target/metaserver-2.0-SNAPSHOT.war
+    cp $maven_war $pwd/release/metaserver.war
+    
+if $cleanup_after; then
+    rm -rf $project_dir
+fi

@@ -1,0 +1,93 @@
+This directory contains scripts to start main ochem server, 
+calculation servers as well as configurations of tomcats.
+
+Steps for Linux (ubuntu 22.04 was tested): 
+
+0) Pre-requisites:
+
+Install mariadb and mongodb on your local computer
+mongodb does not need any password
+mariadb - have password with you to install tables
+Additions: if you run VirtualBox, consider installing tools 
+https://linuxize.com/post/how-to-install-virtualbox-guest-additions-in-ubuntu/
+
+install mongodb and mariadb
+
+1) setup directories: in the root of these instructions create links and make scripts executable
+
+export ROOT_DIR=`pwd` 
+bash setup.sh
+
+2) install mongodb 4.4 (5.0 is not supported yet) and mariadb (10.6.7+) on your computer, see e.g.
+
+https://www.mongodb.com/docs/v4.4/tutorial/install-mongodb-on-ubuntu/
+https://computingforgeeks.com/how-to-install-mariadb-on-ubuntu-lts-linux/
+
+If you are installing MongoDB on Ubuntu 22.04, the following fix might be required:
+
+https://askubuntu.com/questions/1403619/mongodb-install-fails-on-ubuntu-22-04-depends-on-libssl1-1-but-it-is-not-insta
+
+To allow connections outside of local host specify in /etc/mongod.conf :
+
+# network interfaces
+net:
+  port: 27017
+  #bindIp: 127.0.0.1
+  bindIpAll: true 
+
+2) in demo-data folder: create tables in mariadb from this directory (root mysql password could be required)
+
+cd ${ROOT_DIR}/demo-data
+sudo bash
+bash insert_databases.sh 
+
+3) Download optimal modules as indicated in the respective directories for
+mold2
+
+4) in singularity folder: compile singularity image
+
+First install singularity: see instructions at https://github.com/sylabs/singularity/blob/main/INSTALL.md
+
+cd ${ROOT_DIR}/demo-data
+sudo singularity build ../env/ochemenv/ochemenv.sif singularity_ochem
+
+N.B.! On aarch64 architecture run:
+sudo singularity build ../env/ochemenv/ochemenv.sif singularity_ochem_arm
+
+5) in build folder: compile code 
+
+# Install correct version of java jdk (version 1.8);  maven for the later Java versions is incompatible
+
+sudo apt install openjdk-8-jdk
+sudo apt install maven subversion zip git
+cd ${ROOT_DIR}/build
+./refresh_all
+
+6) start servers
+
+cd ${ROOT_DIR}/
+bash startHostName.sh localhost
+
+N.B.! On aarch64 architecture run:
+bash armStartHostName.sh localhost
+
+The OCHEM will be available at 
+
+http://localhost:8080
+http://localhost:7080/metaserver
+
+If servers are not available (you will see them under the second link) after few minutes, start them manually
+cd ${ROOT_DIR}/servers
+./start.sh ochem
+
+7) If you would like to change localhost to, e.g., your IP run
+
+cd ${ROOT_DIR}/
+bash startHostName.sh YOUR_IP
+
+8) in server folder xemistry : install Xemistry tools for substructure search (see instructions in .
+Download plugin and after that update mysql:
+
+mysql -uroot -p < xemistry_init.sql
+
+N.B:! Both ochemenv and servers reuse the same image, which is linked with "ln -s" 

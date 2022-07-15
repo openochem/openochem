@@ -1,0 +1,164 @@
+pwd=`pwd`
+svnpass="--password 3ea01ef57904a88e96818f24fc380aec --username itetko"
+svnhost="$svnpass https://svn.ochem.eu"
+
+svn_export="svn export --force"
+svn_branch=branches/oochem
+website_branch=branches/oochem
+mainwebapp_branch=branches/oochem
+metaserver_branch=branches/oochem
+cleanup_after=true
+cleanup_before=true
+checkout_strategy=svn
+release_id=""
+force_open_source=false
+export OCHEM_ENV=CHEMAXON
+export OCHEM_CHEMAXON_LICENSE=${HOME}/env/ochem/cfg/license.cxl # relevant only if OCHEM_ENV=CHEMAXON
+
+if [ -f build.cfg ]; then
+	cfg_svn_branch=$(cat build.cfg | grep svn_branch | cut -d'=' -f2)
+	cfg_metaserver_branch=$(cat build.cfg | grep metaserver_branch | cut -d'=' -f2)
+	cfg_mainwebapp_branch=$(cat build.cfg | grep mainwebapp_branch | cut -d'=' -f2)
+	cfg_svn_host=$(cat build.cfg | grep svn_host | cut -d'=' -f2)
+	cfg_cleanup_before=$(cat build.cfg | grep cleanup_before | cut -d'=' -f2)
+	cfg_cleanup_after=$(cat build.cfg | grep cleanup_after | cut -d'=' -f2)
+	cfg_svn_export=$(cat build.cfg | grep svn_export | cut -d'=' -f2)
+	cfg_checkout_strategy=$(cat build.cfg | grep checkout_strategy | cut -d'=' -f2)
+	cfg_release_id=$(cat build.cfg | grep release_id | cut -d'=' -f2)
+	
+	if [ ! -z "$cfg_cleanup_before" ]; then
+		cleanup_before=$cfg_cleanup_before
+	fi
+	
+	if [ ! -z "$cfg_checkout_strategy" ]; then
+		checkout_strategy=$cfg_checkout_strategy
+	fi
+	
+	if [ ! -z "$cfg_cleanup_after" ]; then
+		cleanup_after=$cfg_cleanup_after
+	fi
+	
+	if [ ! -z "$cfg_svn_export" ]; then
+		svn_export=$cfg_svn_export
+	fi
+	
+	if [ ! -z "$cfg_release_id" ]; then
+		release_id=$cfg_release_id
+	fi
+	
+	if [ -z "$cfg_svn_branch" ]; then
+		echo "SVN branch not configured in build.cfg"
+		exit 1
+	else
+		echo "Using SVN branch $cfg_svn_branch"
+		metaserver_branch=$cfg_svn_branch
+		website_branch=$cfg_svn_branch	
+		mainwebapp_branch=$cfg_svn_branch	
+	fi
+	
+	if [ ! -z "$cfg_metaserver_branch" ]; then
+		echo "Using metaserver branch $cfg_metaserver_branch"
+		metaserver_branch=$cfg_metaserver_branch
+	fi
+	
+	if [ ! -z "$cfg_mainwebapp_branch" ]; then
+		echo "Using frontend branch $cfg_mainwebapp_branch"
+		mainwebapp_branch=$cfg_mainwebapp_branch
+	fi
+	
+	if [ ! -z "$cfg_svn_host" ]; then
+		echo "Using SVN host $cfg_svn_host"
+		svnhost=$cfg_svn_host
+	fi
+fi
+
+local_user_name=`id -un`
+
+#if [ ! -d /tomcat-libs ]; then
+#	echo "To run the build, you should have a /tomcat-libs link that points to the tomcat library path" 
+#	exit 1
+#fi
+
+while getopts "w:d:r:t:o" optionName; do
+case "$optionName" in
+d) project_dir="$OPTARG";;
+r) release_id="$OPTARG";;
+t) force_trunk=true;;
+o) force_open_source=true && export OCHEM_ENV=CDK && OCHEM_CHEMAXON_LICENSE=
+esac
+done
+
+if [ ! -z "$release_id" ]; then
+	echo "Using release ID" $release_id
+	if [ -z "`svn ls $svnhost/qspr-r/tags/$release_id 2> /dev/null`" ]; then
+		echo "Release $release_id not found in SVN!"
+		exit 1
+	fi
+	if [ -z "`svn ls $svnhost/metaserver/tags/$release_id 2> /dev/null`" ]; then
+		echo "Release $release_id not found in SVN!"
+		exit 1
+	fi
+
+	if [ "$checkout_strategy" != "copy" ]; then	
+		svn_branch=tags/$release_id
+		website_branch=tags/$release_id
+		mainwebapp_branch=tags/$release_id
+		metaserver_branch=tags/$release_id
+	fi
+	
+fi
+
+
+if [ "$checkout_strategy" == "copy" ]; then
+	echo "Using local workspace instead of remote SVN repository"
+fi
+
+function checkout
+{
+	if [ "$checkout_strategy" == "copy" ]; then
+		echo "cp -r $pwd/workspace/$1 $2"
+		cp -r $pwd/workspace/$1 $2	
+	else
+		$svn_export $svnhost/$1 $2
+	fi
+}	
+
+function production_check
+{
+	# Is maven properly configured? 
+	#if [ -z $(cat ~/.m2/settings.xml | grep nexus.ochem.eu) ]; then
+	#	echo "Please, configure your maven at ~/.m2/settings.xml"
+	#	echo "An exemplary file can be downloaded at http://confluence.qspr.eu/download/attachments/5013506/settings.xml"
+	#	exit 1
+	#fi
+
+	# Are we allowed to build at this time?
+	if [[ ! -z $(cat build.cfg | grep production=1) ]]; then
+		hours=$(date +%k)
+		if [ "$hours" -lt 19 -a $hours -gt 9 ]; then
+			echo "SEVERE: This is a PRODUCTION server. Please, build it only in evening and maximum once per week."
+			echo "Use the staging server or your local server for testing and daily builds."
+			echo "Exiting."
+			exit 1
+		fi
+		
+		if [ -z $release_id ]; then
+			echo ""
+			echo "SEVERE: This is a production server and you cannot use trunk to build it. Use staging to build from trunk."
+			echo "You have to use one of the releases."
+			echo "Please, specify the desired release directly using -r key, e.g. ./script_name -r 1.1"
+			
+			tags=`svn ls svn+ssh://tomcat@qspr/var/svn/qspr-r/tags 2> /dev/null | sed s,/,,g`
+			echo ""
+			echo "Latest releases: "
+			echo $tags
+			exit 1
+		fi
+	fi
+}
+
+function local_install_component
+{
+	cd $1
+	mvn clean install	
+}

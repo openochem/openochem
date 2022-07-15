@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -u
+set +e
+
+cd release
+zip -9 ../../env/ochemenv/ochem.release ochem.war metaserver.war *.zip
+cd ../..
+bash startHostName.sh
+
+echo "Deployment done."
+

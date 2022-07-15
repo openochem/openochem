@@ -1,0 +1,1 @@
+./build_calculation_servers $* && ./deploy cs

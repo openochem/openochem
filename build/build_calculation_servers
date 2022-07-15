@@ -1,0 +1,87 @@
+#!/bin/bash
+set -u
+set -e
+
+pwd=`pwd`
+project_dir=$pwd/release/tmp/calculation_servers
+build_file=$pwd/projects/cs_release/pom.xml
+
+source commons
+production_check
+
+mkdir -p $project_dir
+
+if $cleanup_before; then
+	rm -rf $project_dir
+	mkdir $project_dir
+fi
+
+cd $pwd
+   
+
+mkdir $project_dir/release
+mkdir $project_dir/release/output
+mkdir $project_dir/release/runs
+mkdir $project_dir/release/lib
+mkdir $project_dir/release/files
+
+cp -a ochem-code/. $project_dir/
+cp -a ochem-code/WfTools/tools $project_dir/release/tools
+chmod +x $project_dir/release/tools/*
+chmod +x $project_dir/release/tools/*/*
+
+rm -rf `find $project_dir -iname .svn`
+
+ if [ -f $pwd/custom/cs_prebuild ]; then
+ 		export project_dir="$project_dir"
+ 		cd $pwd/custom/
+   		./cs_prebuild
+   		cd $pwd
+   fi
+
+local_install_component $project_dir/parent-project
+local_install_component $project_dir/ochem-utils
+local_install_component $project_dir/metaserver-api
+local_install_component $project_dir/ochem-commons
+local_install_component $project_dir/ws-client
+
+echo "Packaging calculation server."
+cd $project_dir
+cp $build_file .
+mvn clean package
+echo "Done."
+
+
+
+cp -f $project_dir/calculation-servers/target/*.jar $project_dir/release/lib
+cp -f -r $project_dir/calculation-servers/files/test-samples $project_dir/release/files
+
+
+if [ -f /etc/ochem/version-template.xml ]; then
+	cp /etc/ochem/version-template.xml $project_dir/release
+fi
+
+if [ -z "$release_id" ]; then
+	name=`date +%y-%m-%d-%H-%M-%S`
+else
+	name="v.$release_id-"`date +%y-%m-%d-%H-%M-%S`
+fi
+
+cd $project_dir/release
+zip -r $project_dir/$name.tmp *
+
+rm -f $pwd/release/*.zip
+mv $project_dir/$name.tmp $pwd/release/$name.zip
+
+if [ -d $pwd/../installation_package ]; then
+	echo "Copying the CS release to the OCHEM installation package"
+	rm -f $pwd/../installation_package/cs_releases/*.zip
+	cp $pwd/release/$name.zip $pwd/../installation_package/cs_releases/
+fi
+
+cd ..
+echo "$name was build successfully."
+ 
+if $cleanup_after; then
+    rm -rf $project_dir
+fi

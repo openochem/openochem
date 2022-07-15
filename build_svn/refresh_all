@@ -1,0 +1,7 @@
+#!/bin/bash
+
+DIR=`pwd`
+cd ../build/packages
+bash install_testsuites.sh
+cd $DIR
+./build_ochem $*  && ./build_metaserver $* && ./build_calculation_servers $* && ./deploy
