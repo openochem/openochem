@@ -1,5 +1,7 @@
 BootStrap: docker
-From: nvidia/cuda:11.3.1-cudnn8-devel-ubuntu20.04
+From: nvidia/cuda:11.3.1-devel-ubuntu20.04
+
+#installation for arm64, e.g. Ubuntu running on Mac m1
 
 %labels
 MAINTAINER itetko 
@@ -9,8 +11,8 @@ MAINTAINER itetko
 %post
 VERSION=11
 CUDA=3
-PYTORCHMAIN=1.12
-PYTORCHMIN=0
+PYTORCHMAIN=1.10
+PYTORCHMIN=2
 PYTHON=3.9
 
 CUDAPATH=${VERSION}.${CUDA}
@@ -19,15 +21,11 @@ CUDTORCH=cu${VERSION}${CUDA} # For pytorch
 JNN=j4 # indicate on how many CPUs it should be compiled
 BOOST=1.73
 
-TENSOR=2.9.1 #can be probably also newer
-PROTOBUF=3.20.0 # Fix for tensorflow 
+TENSOR=2.9.1
 
 export DEBIAN_FRONTEND=noninteractive
 
 apt-get -qq update --fix-missing
-
-dpkg --add-architecture i386
-apt-get update
 
 # first install tomcat for external use
 apt-get -y install openjdk-8-jdk vim tar wget locate zip python$PYTHON python3-pip git
@@ -35,13 +33,16 @@ apt-get -y install openjdk-8-jdk vim tar wget locate zip python$PYTHON python3-p
 ##
 cd /tmp
 SOURCE=/tmp/ochem-external-tools/
-rm -rf $SOURCE 
+rm -rf $SOURCE
 git clone https://github.com/openochem/ochem-external-tools.git
 
 HOME=/etc/ochem
 mkdir $HOME 
 cd $HOME 
 cp -r $SOURCE/ochem/ .
+chmod +x *
+chmod +x */*
+chmod +x */*/*
 
 mkdir -p /etc/cs_servers
 mkdir -p /etc/source
@@ -59,67 +60,24 @@ cp weka-3-6-15/weka.jar /etc/source/weka
 cd
 rm -rf download weka-3-6-15
 
-# MOPAC2016
-cd
-mkdir -p /etc/source/mopac2016
-mkdir mop
-cd mop
-wget http://openmopac.net/MOPAC2016_for_Linux_64_bit.zip
-unzip MOPAC2016_for_Linux_64_bit.zip
-cp MOPAC2016.exe /etc/source/mopac2016/MOPAC2016-linux
-
-wget http://openmopac.net/MOPAC2016_for_Macintosh.zip
-unzip -o MOPAC2016_for_Macintosh.zip
-cp MOPAC2016.exe /etc/source/mopac2016/MOPAC2016-darwin
-cd 
-rm -rf mop
-
+#not yet on aarch64
+#MOPAC2016
 #KRAKENX
-cd
-git clone https://gitlab.com/vishsoft/krakenx.git
-cd krakenx/build
-bash build.sh
-cp KrakenX.jar /etc/source/mopac2016
-#cd ../example
-#sed -i 's|rm ||' caldesc.sh
-#bash caldesc.sh >/dev/null 2>/dev/null|| true;
-#cp pars.txt /etc/source/mopac2016
-cd
-rm -rf krakenx
-
 #SIGMA profiles
-git clone https://github.com/lvpp/sigma.git
-cp sigma/MOPAC/POA1.rm1 /etc/source/mopac2016/
-rm -rf sigma
-
-#Mold2
-mkdir -p /etc/source/mold2/
-wget 'https://www.fda.gov/files/science%20&%20research/published/Mold2-Executable-File.zip'
-unzip Mold2-Executable-File.zip
-cp Mold2/Linux_x86-64/Mold2 /etc/source/mold2/mold2-linux
-rm -rf Mold2*
-
-#Fragmentor
-mkdir -p /etc/source/fragmentor/
-wget https://web.archive.org/web/20150219162247/http://infochim.u-strasbg.fr/recherche/Download/Fragmentor/Fragmentor2014_Linux-64bit
-mv Fragmentor2014_Linux-64bit /etc/source/fragmentor/isida-fragmentor-linux
 
 #GSFrag
 cd /etc/source/gsfrag/source
 bash make.sh
-mv gsfrag ../gsfrag-linux
-mv gsfragl ../gsfragl-linux
+mv gsfrag ../gsfrag-aarch64
+mv gsfragl ../gsfragl-aarch64
 
-chmod +x /etc/source/*/*
-chmod +x /etc/source/*/*/*
-
-cd
 apacheversion="9.0.62"
 TOM=9
 apachetomcat="apache-tomcat-"$apacheversion
 package="$HOME/ochem"
 conf_dir="$package/conf"
 
+cd
 wget http://archive.apache.org/dist/tomcat/tomcat-$TOM/v$apacheversion/bin/$apachetomcat.zip
 unzip $apachetomcat.zip
 cp -r $apachetomcat "$HOME/ochem-tomcat"; rm -rf "$HOME/ochem-tomcat/webapps/ROOT"
@@ -131,11 +89,6 @@ ln -sf $conf_dir/tomcat/metaserver-server.xml $HOME/metaserver-tomcat/conf/serve
 mkdir /etc/ochem/cs_release
 cd /etc/ochem ; zip -9 -r /home/ochem.zip *
 #finished Tomcat
-
-apt-get -y install -o APT::Immediate-Configure=false libz-dev:i386
-apt-get -y install libc6:i386 libncurses5:i386 libstdc++6:i386
-apt-get -y install wine-stable
-apt-get -y install wine32
 
 apt-get -y install openjdk-8-jdk emacs-nox vim tar unzip screen wget libgomp1 locate # OCHEM
 apt-get -y install git cmake wget libopenblas-base libomp-dev
@@ -151,6 +104,8 @@ wget https://sourceforge.net/projects/openbabel/files/openbabel/2.4.1/openbabel-
 tar -zxf download
 rm download 
 cd openbabel-2.4.1
+sed -i 's|-119|137|' src/formats/pngformat.cpp # FIX for char 
+sed -i 's|-16|240|'  src/formats/yasaraformat.cpp # FIX for char  
 mkdir build
 cd build/
 cmake ..
@@ -166,10 +121,12 @@ git clone https://github.com/silicos-it/strip-it.git
 cd strip-it
 cmake CMakeLists.txt
 make
-cp strip-it  /etc/source/silicos-it/strip-it-linux
+cp strip-it  /etc/source/silicos-it/strip-it-aarch64
 cd
 rm -rf strip-it
 
+
+##OpenBabel v.3
 cd
 apt-get install -y software-properties-common
 git clone https://github.com/openbabel/openbabel
@@ -180,10 +137,10 @@ cmake -DRUN_SWIG=ON -DPYTHON_BINDINGS=ON -DCMAKE_INSTALL_PREFIX=/usr/local ..
 make -$JNN
 make install
 cd
-rm -rf openbabel*
+rm -rf openbabel
 
 ########################## START Conda base
-wget --quiet https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /root/anaconda.sh
+wget --quiet https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-aarch64.sh -O /root/anaconda.sh
 /bin/bash /root/anaconda.sh -b -p /opt/conda
 rm /root/anaconda.sh
 ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh
@@ -208,7 +165,7 @@ cd /workspace
 git clone https://github.com/rdkit/rdkit.git 
 
 conda install -y joblib matplotlib cmake cairo pillow eigen pkg-config boost-cpp=$BOOST boost=$BOOST py-boost=$BOOST
-pip install -U numpy$NUMPY
+pip install -U numpy
 apt-get -y install flex bison
 
 mkdir -p /workspace/rdkit/build
@@ -232,70 +189,47 @@ export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH:${RDBASE}/lib
 pip install git+https://github.com/bp-kelley/descriptastorus
 pip install texttable
 
-conda install -y pytorch=${PYTORCHMAIN}.${PYTORCHMIN} torchvision torchaudio cudatoolkit=$CUDAPATH -c pytorch -c nvidia
-#somehow only version 0 is supported...
-PYTORCH=${PYTORCHMAIN}.0 # Only version 0 is usually only available...
-pip install torch-scatter -f https://pytorch-geometric.com/whl/torch-${PYTORCH}+${CUDTORCH}.html
-pip install torch-sparse -f https://pytorch-geometric.com/whl/torch-${PYTORCH}+${CUDTORCH}.html
-pip install torch-cluster -f https://pytorch-geometric.com/whl/torch-${PYTORCH}+${CUDTORCH}.html
-pip install torch-spline-conv -f https://pytorch-geometric.com/whl/torch-${PYTORCH}+${CUDTORCH}.html
-pip install torch-geometric #==1.7.2 # FIX for MKIT
+conda install -c pytorch torchvision 
+pip install torch-geometric
 pip install pytorch-lightning
 conda install -y scikit-learn
-
-conda install -c conda-forge openbabel 
-
-##conda install -c anaconda cudatoolkit=$CUDAPATH ## already installed for pytorch
+conda install -y -c conda-forge openbabel 
 pip install --upgrade pip
-pip install --upgrade tensorflow==$TENSOR # usually latest version; just to remember which one 
-
-pip install --upgrade protobuf==$PROTOBUF # FIX for recent error
+pip install --upgrade tensorflow-aarch64==$TENSOR
+pip install --upgrade protobuf # FIX for recent error
 
 pip install h5py Pebble matplotlib keras tensorboardX pyyaml
 pip install xlrd  mysql.connector
-pip install sympy==1.8  # FIX for DIMENET, uses old sympy
+pip install sympy 
 pip install opencv-python
 
 pip install deepchem # deepchem v.2
 pip install tensorflow-probability 
 pip install tables fire 
 
-pip install haste_pytorch 
-pip install kgcnn==2.0.3
-#cd /etc/source
-#git clone https://github.com/aimat-lab/gcnn_keras.git
-#pip install -e ./gcnn_keras
-#rm -rf gcnn_keras
+## an attempt to use a newer version results in crash...
+apt-get -y install r-base 
 
-#R latest
-apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
-add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/'
-
-apt update
-apt install -y r-base
-/usr/bin//Rscript -e 'install.packages("randomForest",repos="http://cran.us.r-project.org")'
+#/usr/bin//Rscript -e 'install.packages("randomForest",repos="http://cran.us.r-project.org")' # no supprt for version 3.6.2
 /usr/bin//Rscript -e 'install.packages("pls",repos="http://cran.us.r-project.org")'
 
 conda install -y -c conda-forge pygpu
-pip install 'git+https://github.com/facebookresearch/detectron2.git'
 
-#conda install -c tmap tmap # required 3.7; code need to be updated
 pip install mhfp
 
 conda update conda
 
 pip install git+https://github.com/mordred-descriptor/mordred
-pip install tensorflow_addons
-pip install cupy-cuda${VERSION}${CUDA}
 pip install chainer
 
-chmod +x /opt/conda/etc/profile.d/conda.sh
-mkdir /ochem
+chmod +x /etc/source/*/*
 chmod 777 -R /etc/source
 chmod 777 -R /etc/cs_servers
 chmod 777 /var/run/screen
+
+chmod +x /opt/conda/etc/profile.d/conda.sh
+mkdir /ochem
 updatedb
-rm -rf /etc/ochem/*
 
 %environment
 export RDBASE=/workspace/rdkit
@@ -307,3 +241,4 @@ export OMP_NUM_THREADS=1
 export CUDA_DEVICE_ORDER=PCI_BUS_ID
 export OCHEMEMORY=2048
 export METAMEMORY=1024
+

@@ -1,4 +1,5 @@
 # ignored at all levels
+.pydevproject
 .svn
 .DS_Store
 ._.DS_Store
@@ -20,6 +21,7 @@ RemoteSystemsTempFiles
 *.tar
 *.tar.gz
 
+source
 /env/ochemenv/ochem.release
 /env/ochemenv/ochemenv.sif
 /env/ochemenv/tmp/
