@@ -2,8 +2,10 @@ pwd=`pwd`
 
 cleanup_after=true
 cleanup_before=true
-release_id="trunk"
+release_id="main"
 export OCHEM_ENV=CDK
+
+export OCHEM_GIT=${OCHEM_GIT:=git@github.com:openochem/ochem-code.git}
 
 if [ -f build.cfg ]; then
 	cfg_svn_branch=$(cat build.cfg | grep svn_branch | cut -d'=' -f2)
@@ -73,8 +75,8 @@ fi
 function checkout
 {
 	if [ "$checkout_strategy" == "copy" ]; then
-		echo "cp -r $pwd/ochem-code/$1 $2"
-		cp -r $pwd/ochem-code/$1 $2	
+		echo "cp -r $pwd/workspace/$1 $2"
+		cp -r $pwd/workspace/$1 $2	
 	else
 		$svn_export $svnhost/$1 $2
 	fi
@@ -120,23 +122,34 @@ function local_install_component
 	mvn clean install	
 }
 
-echo "Cloning git submodule: ochem-code..."
-git submodule update --init --recursive ochem-code
+mkdir -p workspace
+if [ -d "workspace/git" ]; then
+    echo "Workspace exists. Switching..."
+else
+    mkdir -p workspace/git
+    echo "Cloning git repository to workspace and switching..."
+    git clone ${OCHEM_GIT} workspace/git/
+fi
 
-export WORKSPACE_DIR="$pwd/ochem-code"
+export WORKSPACE_DIR="$pwd/workspace/git"
 cd $WORKSPACE_DIR
-echo "Entered Workspace at ${WORKSPACE_DIR}."
+
+if [ "$(ls -A $WORKSPACE_DIR)" ]; then
+ echo "Entered Workspace."
+else
+ git clone ${OCHEM_GIT} . 
+fi
 
 if [ "$release_id" != "default" ]; then
     echo "Switching workspace to $release_id"
-    git fetch origin $release_id
+    git fetch --all
     git checkout $release_id
     git checkout .
     git pull origin $release_id
 else
-    echo "Using trunk as workspace..."
-    git fetch origin trunk
-    git checkout trunk
+    echo "Using default switch. Switching to trunk..."
+    git fetch --all
+    git checkout main 
     git pull
     git checkout .
 fi

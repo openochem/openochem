@@ -25,8 +25,8 @@ mkdir $project_dir/release/runs
 mkdir $project_dir/release/lib
 mkdir $project_dir/release/files
 
-cp -a ochem-code/. $project_dir/
-cp -a ochem-code/WfTools/tools $project_dir/release/tools
+cp -a workspace/git//. $project_dir/
+cp -a workspace/git//WfTools/tools $project_dir/release/tools
 chmod +x $project_dir/release/tools/*
 chmod +x $project_dir/release/tools/*/*
 

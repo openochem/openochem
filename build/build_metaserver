@@ -20,13 +20,18 @@ fi
     
     cd $pwd
    
-   cp -a ochem-code/. $project_dir/
+   cp -a workspace/git/. $project_dir/
+    project_dir=$project_dir/
+    cd $project_dir
     git log -1 > $project_dir/MetaServer/src/main/webapp/version.info
-    date +%Y-%m-%d\ %H:%M:%S >> $project_dir/MetaServer/src/main/webapp/version.info
-    echo `env | grep SSH_CONNECTION  | awk -F ' ' {'print $1'} | awk -F '=' {'print $2'}` >> $project_dir/MetaServer/src/main/webapp/version.info
+    cd $pwd
+    
+	date +%Y-%m-%d\ %H:%M:%S >> $project_dir/MetaServer/src/main/webapp/version.info
+	echo `env | grep SSH_CONNECTION  | awk -F ' ' {'print $1'} | awk -F '=' {'print $2'}` >> $project_dir/MetaServer/src/main/webapp/version.info
 	
-    rm -rf `find $project_dir -iname .svn`
+	rm -rf `find $project_dir -iname .svn`
 	
+
     local_install_component $project_dir/parent-project
     local_install_component $project_dir/ochem-utils
     local_install_component $project_dir/metaserver-api
