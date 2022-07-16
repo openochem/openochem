@@ -34,9 +34,9 @@ apt-get -y install openjdk-8-jdk vim tar wget locate zip python$PYTHON python3-p
 
 ##
 cd /tmp
-git clone git@github.com:openochem/ochem-external-tools.git
-
-SOURCE=/tmp/ochem-external-tools-trunk/
+SOURCE=/tmp/ochem-external-tools/
+rm -rf $SOURCE 
+git clone https://github.com/openochem/ochem-external-tools.git
 
 HOME=/etc/ochem
 mkdir $HOME 
