@@ -1,6 +1,3 @@
-[submodule "singularity/source"]
-	path = singularity/source
-	url = git@github.com:openochem/ochem-external-tools.git
 [submodule "build/ochem-code"]
 	path = build/ochem-code
 	url = git@github.com:openochem/ochem-code.git
