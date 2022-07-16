@@ -14,9 +14,9 @@ We wish you a happy computing!
 
 We sincerely thank Yuriy Sushko, Sergey Novotarskyi, Pavel Karpov, Mark Embrechts, Robert Körner, Anil Kumar Pandey, Elena Salmina, Stefan Brandmaier, Larisa Charochkina, Vasyl Kovalishyn, Ahmed Abdelaziz, Matthias Rupp, Dipan Ghosh, Zhonghua Xia as well as many other current and former members of Tetko's group and eADMET and BIGCHEM GmbH companies for their contributions to the development, testing, use and the feedback.
 
-We also thank developers of [CDK](github.com/cdk), [MOPAC2016](http://openmopac.net), [KGCNN](https://github.com/aimat-lab/gcnn_keras), [OpenBabel](https://github.com/openbabel/openbabel), [Xemistry](https://www.xemistry.com/), [BALLOON](http://users.abo.fi/mivainio/balloon/),  as well as Vsevolod Tanchuk, Sergey Sosnin, Maxim Fedorov, Peter Ertel, Bruno Bienfait, Gilles Marcou, Igor Baskin, Artem Cherkasov, Eugene Radchenko, Vladimir Palyulin, Vijay Masand, Vishweh Venkatraman, Weida Tong, Huixiao Hong, Todd Martin and many others who contributed modules that are used in the OCHEM.
+We also thank developers of [CDK](github.com/cdk), [MOPAC2016](http://openmopac.net), [KGCNN](https://github.com/aimat-lab/gcnn_keras), [OpenBabel](https://github.com/openbabel/openbabel), [Xemistry](https://www.xemistry.com/), [BALLOON](http://users.abo.fi/mivainio/balloon/), [WEKA](https://github.com/Waikato/weka-3.8)  as well as Vsevolod Tanchuk, Sergey Sosnin, Maxim Fedorov, Peter Ertl, Bruno Bienfait, Ruud van Deursen, Gilles Marcou, Igor Baskin, Artem Cherkasov, Pavel Polishchuk, Eugene Radchenko, Vladimir Palyulin, Vijay Masand, Vishweh Venkatraman, Andrea Mauri, Weida Tong, Huixiao Hong, Todd Martin, Peter Jarowski, Vladimir Poroikov, Dmitriy Filimonov  and many others who contributed modules that are used in the OCHEM.
 
-Igor Tetko, Martin Šícho, Guillaume Godin and BICGHEM GmBH
+Igor Tetko, Martin Šícho, Guillaume Godin and BIGCHEM GmBH
 
 
 
