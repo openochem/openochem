@@ -20,16 +20,11 @@ fi
 
    mkdir -p $project_dir/release
    cd $pwd
-   cp -a workspace/git/. $project_dir/
-
+   cp -a ochem-code/. $project_dir/
+   git log -1 > $project_dir/ochem-webapp/src/main/webapp/version.info
+   date +%Y-%m-%d\ %H:%M:%S >> $project_dir/ochem-webapp/src/main/webapp/version.info
    rm -rf `find $project_dir -iname .svn`
    
-   project_dir=$project_dir/
-   cd $project_dir
-   git log -1 > $project_dir/ochem-webapp/src/main/webapp/version.info
-   cd $pwd
-
-   date +%Y-%m-%d\ %H:%M:%S >> $project_dir/ochem-webapp/src/main/webapp/version.info
    echo `env | grep SSH_CONNECTION  | awk -F ' ' {'print $1'} | awk -F '=' {'print $2'}` >> $project_dir/ochem-webapp/src/main/webapp/version.info
 
    HelperScripts/sources_batch $project_dir $tag
