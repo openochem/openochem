@@ -33,7 +33,7 @@ apt-get -qq update --fix-missing
 apt-get -y install openjdk-8-jdk vim tar wget locate zip python$PYTHON python3-pip git
 
 # disable if you wish to use local source repository
-cd /tmp; rm -rf $SOURCE; git clone https://github.com/openochem/ochem-external-tools.git
+cd /root; rm -rf $SOURCE; git clone https://github.com/openochem/ochem-external-tools.git
 
 HOME=/etc/ochem
 mkdir $HOME 
