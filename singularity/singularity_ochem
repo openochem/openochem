@@ -5,6 +5,7 @@ From: nvidia/cuda:11.3.1-cudnn8-devel-ubuntu20.04
 MAINTAINER itetko 
 
 %files
+#source /tmp/ochem-external-tools # uncomment if you would like to use local source repository
 
 %post
 VERSION=11
@@ -15,8 +16,9 @@ PYTHON=3.9
 
 CUDAPATH=${VERSION}.${CUDA}
 CUDTORCH=cu${VERSION}${CUDA} # For pytorch
+SOURCE=/tmp/ochem-external-tools/
 
-JNN=j4 # indicate on how many CPUs it should be compiled
+JNN=j6 # indicate on how many CPUs it should be compiled
 BOOST=1.73
 
 TENSOR=2.9.1 #can be probably also newer
@@ -32,11 +34,8 @@ apt-get update
 # first install tomcat for external use
 apt-get -y install openjdk-8-jdk vim tar wget locate zip python$PYTHON python3-pip git
 
-##
-cd /tmp
-SOURCE=/tmp/ochem-external-tools/
-rm -rf $SOURCE 
-git clone https://github.com/openochem/ochem-external-tools.git
+# disable if you wish to use local source repository
+cd /tmp; rm -rf $SOURCE; git clone https://github.com/openochem/ochem-external-tools.git
 
 HOME=/etc/ochem
 mkdir $HOME 

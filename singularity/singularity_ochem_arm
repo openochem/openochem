@@ -7,6 +7,7 @@ From: nvidia/cuda:11.3.1-devel-ubuntu20.04
 MAINTAINER itetko 
 
 %files
+#source /root/ochem-external-tools
 
 %post
 VERSION=11
@@ -17,8 +18,9 @@ PYTHON=3.9
 
 CUDAPATH=${VERSION}.${CUDA}
 CUDTORCH=cu${VERSION}${CUDA} # For pytorch
+SOURCE=/root/ochem-external-tools/
 
-JNN=j4 # indicate on how many CPUs it should be compiled
+JNN=j6 # indicate on how many CPUs it should be compiled
 BOOST=1.73
 
 TENSOR=2.9.1
@@ -30,11 +32,8 @@ apt-get -qq update --fix-missing
 # first install tomcat for external use
 apt-get -y install openjdk-8-jdk vim tar wget locate zip python$PYTHON python3-pip git
 
-##
-cd /tmp
-SOURCE=/tmp/ochem-external-tools/
-rm -rf $SOURCE
-git clone https://github.com/openochem/ochem-external-tools.git
+# disable if you wish to use local source repository
+cd /tmp; rm -rf $SOURCE; git clone https://github.com/openochem/ochem-external-tools.git
 
 HOME=/etc/ochem
 mkdir $HOME 
@@ -70,6 +69,8 @@ cd /etc/source/gsfrag/source
 bash make.sh
 mv gsfrag ../gsfrag-aarch64
 mv gsfragl ../gsfragl-aarch64
+
+rm -r $SOURCE
 
 apacheversion="9.0.62"
 TOM=9
