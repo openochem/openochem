@@ -3,10 +3,7 @@ svnpass="--password 3ea01ef57904a88e96818f24fc380aec --username itetko"
 svnhost="$svnpass https://svn.ochem.eu"
 
 svn_export="svn export --force"
-svn_branch=branches/oochem
-website_branch=branches/oochem
-mainwebapp_branch=branches/oochem
-metaserver_branch=branches/oochem
+svn_branch=trunk
 cleanup_after=true
 cleanup_before=true
 checkout_strategy=svn
@@ -84,7 +81,7 @@ case "$optionName" in
 d) project_dir="$OPTARG";;
 r) release_id="$OPTARG";;
 t) force_trunk=true;;
-o) force_open_source=true && export OCHEM_ENV=CDK && OCHEM_CHEMAXON_LICENSE=
+o) force_open_source=true && export OCHEM_ENV=CDK && OCHEM_CHEMAXON_LICENSE= && export svn_branch=branches/oochem
 esac
 done
 
