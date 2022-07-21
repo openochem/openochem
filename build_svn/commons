@@ -1,5 +1,5 @@
 pwd=`pwd`
-svnpass="--password 3ea01ef57904a88e96818f24fc380aec --username itetko"
+svnpass="--password ${SVN_PASSWORD} --username ${SVN_USERNAME}"
 svnhost="$svnpass https://svn.ochem.eu"
 
 svn_export="svn export --force"
