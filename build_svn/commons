@@ -12,6 +12,15 @@ force_open_source=false
 export OCHEM_ENV=CHEMAXON
 export OCHEM_CHEMAXON_LICENSE=${HOME}/env/ochem/cfg/license.cxl # relevant only if OCHEM_ENV=CHEMAXON
 
+while getopts "w:d:r:t:o" optionName; do
+case "$optionName" in
+d) project_dir="$OPTARG";;
+r) release_id="$OPTARG";;
+t) force_trunk=true;;
+o) force_open_source=true && export OCHEM_ENV=CDK && OCHEM_CHEMAXON_LICENSE= && export svn_branch=branches/oochem
+esac
+done
+
 if [ -f build.cfg ]; then
 	cfg_svn_branch=$(cat build.cfg | grep svn_branch | cut -d'=' -f2)
 	cfg_metaserver_branch=$(cat build.cfg | grep metaserver_branch | cut -d'=' -f2)
@@ -44,14 +53,16 @@ if [ -f build.cfg ]; then
 	fi
 	
 	if [ -z "$cfg_svn_branch" ]; then
-		echo "SVN branch not configured in build.cfg"
-		exit 1
-	else
+		echo "SVN branch not configured in build.cfg. Using value: ${svn_branch}"
+                cfg_svn_branch=${svn_branch}
+                #exit 1
+	fi
+        #else
 		echo "Using SVN branch $cfg_svn_branch"
 		metaserver_branch=$cfg_svn_branch
 		website_branch=$cfg_svn_branch	
 		mainwebapp_branch=$cfg_svn_branch	
-	fi
+	#fi
 	
 	if [ ! -z "$cfg_metaserver_branch" ]; then
 		echo "Using metaserver branch $cfg_metaserver_branch"
@@ -75,15 +86,6 @@ local_user_name=`id -un`
 #	echo "To run the build, you should have a /tomcat-libs link that points to the tomcat library path" 
 #	exit 1
 #fi
-
-while getopts "w:d:r:t:o" optionName; do
-case "$optionName" in
-d) project_dir="$OPTARG";;
-r) release_id="$OPTARG";;
-t) force_trunk=true;;
-o) force_open_source=true && export OCHEM_ENV=CDK && OCHEM_CHEMAXON_LICENSE= && export svn_branch=branches/oochem
-esac
-done
 
 if [ ! -z "$release_id" ]; then
 	echo "Using release ID" $release_id
@@ -159,3 +161,6 @@ function local_install_component
 	cd $1
 	mvn clean install	
 }
+
+echo "OCHEM_ENV=${OCHEM_ENV}"
+echo "SVN_BRANCH=${svn_branch}"
