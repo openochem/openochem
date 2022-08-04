@@ -1,6 +1,6 @@
 # Open OCHEM -- AI models for drug discovery and environmental chemistry
 
-The Open OCHEM is open source version of the On-line Chemical database Modelling and Environment Platform (http://ochem.eu)
+The Open OCHEM is open source version of the On-line Chemical database and Modelling Environment Platform (http://ochem.eu)
 
 It is a user-contributed repository of referenced experimental data, computational tools and models of ADMET properties of chemical compounds. The OCHEM algorithms can reliably identify compounds predicted with experimental accuracy: there is no need to test them in a lab. The OCHEM can be used for timely and low-cost identification of scaffolds with lower risks of failure due to the unfavorable physico-chemical and/or biological properties. The free open source of OCHEM is a reference system for academic users thus accumulating data and knowledge produced in academia. The developed OCHEM workflow allows an unbiased comparison of different existing and new machine learning algorithms which can be easily integrated in OCHEM by its users.
 	
