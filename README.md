@@ -1,10 +1,10 @@
-# Open OCHEM -- AI models for drug discovery and enviromental chemistry
+# Open OCHEM -- AI models for drug discovery and environmental chemistry
 
 The Open OCHEM is open source version of the On-line Chemical database Modelling and Environment Platform (http://ochem.eu)
 
 It is a user-contributed repository of referenced experimental data, computational tools and models of ADMET properties of chemical compounds. The OCHEM algorithms can reliably identify compounds predicted with experimental accuracy: there is no need to test them in a lab. The OCHEM can be used for timely and low-cost identification of scaffolds with lower risks of failure due to the unfavorable physico-chemical and/or biological properties. The free open source of OCHEM is a reference system for academic users thus accumulating data and knowledge produced in academia. The developed OCHEM workflow allows an unbiased comparison of different existing and new machine learning algorithms which can be easily integrated in OCHEM by its users.
 	
-OCHEM software can be used to develop QSPR and QSAR models for various biological and physico-chemical projects. It can work with millions of molecules and can be configured to use hundrends of CPUs or GPUs. Open OCHEM allows you to install the fully functional version of the software and analyse your data privately. The closed source version is also available from BIGCHEM GmBH and provides several additional optimized software packages which were contributed by the company or its partners.
+OCHEM software can be used to develop QSPR and QSAR models for various biological and physico-chemical projects. It can work with millions of molecules and can be configured to use hundreds of CPUs or GPUs. Open OCHEM allows you to install the fully functional version of the software and analyse your data privately. The closed source version is also available from BIGCHEM GmBH and provides several additional optimized software packages which were contributed by the company or its partners.
 
 The open OCHEM currently supports tens methods and descriptors packages, which were developed and contributed by different providers and are distributed under the open source or respective license agreements (most of them are free of charge for academic, educational, recreational or evaluation purposes - check each respective license agreement).
 
@@ -12,7 +12,7 @@ See [installation instructions](./INSTRUCTIONS_OCHEM) how to install and run ope
 
 We wish you a happy computing! 
 
-We sincerely thank Yuriy Sushko, Sergey Novotarskyi, Pavel Karpov, Mark Embrechts, Robert Körner, Anil Kumar Pandey, Elena Salmina, Stefan Brandmaier, Larisa Charochkina, Vasyl Kovalishyn, Ahmed Abdelaziz, Matthias Rupp, Dipan Ghosh, Zhonghua Xia, Alli Keys as well as many other current and former members of Tetko's group and eADMET and BIGCHEM GmbH companies for their contributions to the development, testing, use and the feedback.
+We sincerely thank Yuriy Sushko, Sergey Novotarskyi, Pavel Karpov, Mark Embrechts, Ivan Khokhlov, Robert Körner, Anil Kumar Pandey, Elena Salmina, Stefan Brandmaier, Larisa Charochkina, Vasyl Kovalishyn, Ahmed Abdelaziz, Matthias Rupp, Dipan Ghosh, Zhonghua Xia, Alli Keys as well as many other current and former members of Tetko's group and eADMET and BIGCHEM GmbH companies for their contributions to the development, testing, use and the feedback.
 
 We also thank developers of [CDK](github.com/cdk), [MOPAC2016](http://openmopac.net), [KGCNN](https://github.com/aimat-lab/gcnn_keras), [OpenBabel](https://github.com/openbabel/openbabel), [Xemistry](https://www.xemistry.com/), [BALLOON](http://users.abo.fi/mivainio/balloon/), [WEKA](https://github.com/Waikato/weka-3.8)  as well as Vsevolod Tanchuk, Sergey Sosnin, Maxim Fedorov, Peter Ertl, Bruno Bienfait, Ruud van Deursen, Gilles Marcou, Igor Baskin, Artem Cherkasov, Pavel Polishchuk, Eugene Radchenko, Vladimir Palyulin, Vijay Masand, Vishweh Venkatraman, Andrea Mauri, Weida Tong, Huixiao Hong, Todd Martin, Peter Jarowski, Vladimir Poroikov, Dmitriy Filimonov, Atif Raza  and many others who contributed modules that are used in the OCHEM.
 
