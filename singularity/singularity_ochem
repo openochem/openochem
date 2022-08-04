@@ -259,12 +259,6 @@ pip install deepchem # deepchem v.2
 pip install tensorflow-probability 
 pip install tables fire 
 
-pip install haste_pytorch 
-pip install kgcnn==2.0.3
-#cd /etc/source
-#git clone https://github.com/aimat-lab/gcnn_keras.git
-#pip install -e ./gcnn_keras
-#rm -rf gcnn_keras
 
 #R latest
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
@@ -277,8 +271,6 @@ apt install -y r-base
 
 conda install -y -c conda-forge pygpu
 pip install 'git+https://github.com/facebookresearch/detectron2.git'
-
-#conda install -c tmap tmap # required 3.7; code need to be updated
 pip install mhfp
 
 conda update conda
@@ -288,11 +280,37 @@ pip install tensorflow_addons
 pip install cupy-cuda${VERSION}${CUDA}
 pip install chainer
 
-chmod +x /opt/conda/etc/profile.d/conda.sh
-mkdir /ochem
+pip install haste_pytorch # ATTFP
+
+#KGCNN
+pip install kgcnn==2.0.3
+pip install pudb line_profiler
+
+#MAP4
+conda deactivate
+cd
+git clone https://github.com/reymond-group/map4
+cd map4
+conda env create -f environment.yml
+conda activate map4
+pip3 install git+https://github.com/reymond-group/map4
+cd; rm -rf map4
+
+#MACAU
+pip3 install numpy scipy cython pandas requests
+pip3 install requests
+git clone https://github.com/jaak-s/macau.git
+cd macau
+python setup.py install
+cd; rm -rf macau
+
+chmod +x /etc/source/*/*
 chmod 777 -R /etc/source
 chmod 777 -R /etc/cs_servers
 chmod 777 /var/run/screen
+
+chmod +x /opt/conda/etc/profile.d/conda.sh
+mkdir /ochem
 updatedb
 rm -rf /etc/ochem/*
 
