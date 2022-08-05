@@ -288,7 +288,7 @@ pip install pudb line_profiler
 
 #MAP4
 conda deactivate
-cd
+cd; rm -rf map4 macau cddd #previous, in case
 git clone https://github.com/reymond-group/map4
 cd map4
 conda env create -f environment.yml
@@ -303,6 +303,21 @@ git clone https://github.com/jaak-s/macau.git
 cd macau
 python setup.py install
 cd; rm -rf macau
+
+#CDDD
+pip3 install tensorflow==1.14
+pip3 install numpy scikit-learn==0.22 pandas
+git clone https://github.com/jrwnter/cddd.git
+cd cddd/
+sed -i 's|-gpu==1.10.0||' setup.py
+python3.6 setup.py install
+pip install gdown
+gdown 1oyknOulq_j0w9kzOKKIHdTLo5HphT99h
+unzip default_model.zip
+mkdir -p /etc/source/cddd
+cp default_model/* /etc/source/cddd
+cd; rm -rf cddd
+
 
 chmod +x /etc/source/*/*
 chmod 777 -R /etc/source
