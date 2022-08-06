@@ -318,6 +318,7 @@ mkdir -p /etc/source/cddd
 cp default_model/* /etc/source/cddd
 cd; rm -rf cddd
 
+rm -rf /etc/source/mopac2016/mopac.txt /etc/source/mopac2016/mols.txt # will be re-created
 
 chmod +x /etc/source/*/*
 chmod 777 -R /etc/source
