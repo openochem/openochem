@@ -217,6 +217,7 @@ apt-get -y install r-base
 conda install -y -c conda-forge pygpu
 
 pip install mhfp
+pip install pudb line_profiler
 
 conda update conda
 

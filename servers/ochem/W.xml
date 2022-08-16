@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <server-runner-config current-version="18-04-30-23-46-51.zip">
-	<metaserverURL>http://localhost:7080/metaserver</metaserverURL>
-	<ochemURL>http://localhost:8080</ochemURL>
-	<java-home>/usr/lib/jvm/java-8-openjdk-amd64/jre</java-home>
-	<memoryLimit>1024</memoryLimit>
-	<sleepTime>30</sleepTime>
-	<sleepTimeWhileCalculating>60</sleepTimeWhileCalculating>
-	<supported-applications>	
+    <metaserverURL>http://localhost:7080/metaserver</metaserverURL>
+    <ochemURL>http://localhost:8080</ochemURL>
+    <java-home>/usr/lib/jvm/java-8-openjdk-amd64/jre</java-home>
+    <memoryLimit>1024</memoryLimit>
+    <sleepTime>30</sleepTime>
+    <sleepTimeWhileCalculating>60</sleepTimeWhileCalculating>
+    <supported-applications>
+        <application>ASNN</application>
+        <application>Bagging</application>
+        <application>CompareScaffolds</application>
         <application>Consensus</application>
         <application>CrossValidation</application>
         <application>Descriptors</application>
+        <application>FSMLR</application>
+        <application>LEVERAGE</application>
+        <application>MLRA</application>
         <application>MolStandartizer</application>
+        <application>PLS</application>
         <application>Selection</application>
         <application>Workflow</application>
- 		<application>Bagging</application>
-		<application>CompareScaffolds</application>
-		<application>LEVERAGE</application>
-
-        <application>OESTATE</application>
+        
         <application>ALogPS</application>
-        <application>MLRA</application>
-        <application>FSMLR</application>
-        <application>PLS</application>
-        <application>ASNN</application>
-</supported-applications>
+        <application>OESTATE</application>
+    </supported-applications>
 </server-runner-config>
