@@ -6,7 +6,8 @@
     <memoryLimit>2048</memoryLimit>
     <sleepTime>30</sleepTime>
     <sleepTimeWhileCalculating>60</sleepTimeWhileCalculating>
-    <supported-applications>
+     <chemengine>CDK</chemengine>
+        <supported-applications>
         <application>ATTFP</application>
         <application>ChemProp</application>
         <application>CNF</application>

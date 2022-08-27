@@ -6,7 +6,8 @@
     <memoryLimit>2048</memoryLimit>
     <sleepTime>30</sleepTime>
     <sleepTimeWhileCalculating>60</sleepTimeWhileCalculating>
-    <supported-applications>
+     <chemengine>CDK</chemengine>
+        <supported-applications>
         <application>ALogPS</application>
         <application>CDDD</application>
         <application>CDK2</application>
@@ -28,7 +29,7 @@
         <application>SilicosItScaffold</application>
         <application>SIRMS</application>
         <application>Spectrophores</application>
-        <application>STRUCTURALALERTS</application>
+        <application>StructuralAlerts</application>
         
         <application>KrakenX</application>
         <application>MOPAC</application>

@@ -6,7 +6,8 @@
     <memoryLimit>1024</memoryLimit>
     <sleepTime>30</sleepTime>
     <sleepTimeWhileCalculating>60</sleepTimeWhileCalculating>
-    <supported-applications>
+     <chemengine>CDK</chemengine>
+        <supported-applications>
         <application>ASNN</application>
         <application>Bagging</application>
         <application>CompareScaffolds</application>
