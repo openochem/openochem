@@ -1,3 +1,3 @@
 [submodule "build/ochem-code"]
 	path = build/ochem-code
-	url = git@github.com:openochem/ochem-code.git
+	url = https://github.com/openochem/ochem-code.git
