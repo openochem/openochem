@@ -3,6 +3,7 @@
 DIR=`pwd`
 cd $DIR/packages
 bash install_testsuites.sh
-sed -i -r 's|git@github.com:openochem/ochem-code.git|https://github.com/openochem/ochem-code.git|' ../.git/config # change to use https
+# FIX: change to use https
+sed -i -r 's|git@github.com:openochem/ochem-code.git|https://github.com/openochem/ochem-code.git|' ../.git/config
 cd $DIR
 ./build_ochem $*  && ./build_metaserver $* && ./build_calculation_servers $* && ./deploy
