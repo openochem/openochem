@@ -283,7 +283,7 @@ pip install chainer
 pip install haste_pytorch # ATTFP
 
 #KGCNN
-pip install kgcnn==2.0.3
+pip install kgcnn==2.0.4
 pip install pudb line_profiler
 
 #MAP4
@@ -319,6 +319,13 @@ cp default_model/* /etc/source/cddd
 cd; rm -rf cddd
 
 rm -rf /etc/source/mopac2016/mopac.txt /etc/source/mopac2016/mols.txt # will be re-created
+
+apt-get install -y libstdc++6
+
+add-apt-repository ppa:ubuntu-toolchain-r/test
+apt-get update
+apt-get -y upgrade
+apt-get -y dist-upgrade
 
 chmod +x /etc/source/*/*
 chmod 777 -R /etc/source

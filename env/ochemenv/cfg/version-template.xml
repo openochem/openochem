@@ -10,7 +10,7 @@
     </config>
     <config for="Corina">
         <param value="jdbc:mysql://localhost/structures_demo?autoReconnect=true" name="DBURL"/>
-        <param value="molecule" name="DBUSERNAME"/>
+        <param value="ochem" name="DBUSERNAME"/>
         <param value="ochem_db_password" name="DBPASSWORD"/>
     </config>
     <config for="Obgen">
