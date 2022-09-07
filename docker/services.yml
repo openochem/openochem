@@ -1,0 +1,37 @@
+# Use root/example as user/password credentials
+version: '3.1'
+
+services:
+
+  ochem-mongo:
+    image: mongo:4.2
+    restart: always
+    ports:
+      - 27017:27017
+#    environment:
+#      MONGO_INITDB_ROOT_USERNAME: root
+#      MONGO_INITDB_ROOT_PASSWORD: example
+
+  ochem-mariadb:
+    image: ochem-mariadb:latest
+    restart: always
+    ports:
+       - 3306:3306
+    environment:
+       - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=true
+    volumes:
+       - ochem-demo-data:/var/lib/mysql:rw
+
+#  mongo-express:
+#    image: mongo-express
+#    restart: always
+#    ports:
+#      - 8081:8081
+#    environment:
+#      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+#      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+#      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+
+volumes:
+   ochem-demo-data:
+      name: ochem-demo-data
