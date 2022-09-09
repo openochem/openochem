@@ -5,15 +5,19 @@ services:
 
   ochem-mongo:
     image: mongo:4.2
+    container_name: ochem-mongo
     restart: always
     ports:
       - 27017:27017
+    volumes: 
+      - ochem-mongo-data:/data/db
 #    environment:
 #      MONGO_INITDB_ROOT_USERNAME: root
 #      MONGO_INITDB_ROOT_PASSWORD: example
 
   ochem-mariadb:
     image: ochem-mariadb:latest
+    container_name: ochem-mariadb
     restart: always
     ports:
        - 3306:3306
@@ -35,3 +39,5 @@ services:
 volumes:
    ochem-demo-data:
       name: ochem-demo-data
+   ochem-mongo-data:
+      name: ochem-mongo-data

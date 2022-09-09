@@ -1,4 +1,5 @@
 # ignored at all levels
+.idea
 .pydevproject
 .svn
 .DS_Store
