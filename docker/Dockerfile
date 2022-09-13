@@ -1,0 +1,34 @@
+FROM ochem-env
+
+ARG OCHEM_USER=openochem
+ARG OCHEM_HOME="/home/${OCHEM_USER}"
+ARG OCHEM_BUILD_ARGS="-r main"
+
+ENV OCHEM_USER=${OCHEM_USER}
+ENV OCHEM_HOME=${OCHEM_HOME}
+
+ARG MAVEN_VERSION=3.8.6
+ARG BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
+
+RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
+ && wget -O /tmp/apache-maven.tar.gz ${BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
+ && tar -xzf /tmp/apache-maven.tar.gz -C /usr/share/maven --strip-components=1 \
+ && rm -f /tmp/apache-maven.tar.gz \
+ && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
+
+ENV MAVEN_HOME /usr/share/maven
+ENV MAVEN_CONFIG "${OCHEM_USER}/.m2"
+
+RUN useradd -m ${OCHEM_USER}
+USER ${OCHEM_USER}
+WORKDIR ${OCHEM_HOME}
+
+RUN git clone https://github.com/openochem/openochem.git && chmod -R +x openochem && cd openochem/build/packages && ./install_testsuites.sh
+
+RUN cd ${OCHEM_HOME}/openochem/build && ./build_ochem ${OCHEM_BUILD_ARGS} && ./build_metaserver ${OCHEM_BUILD_ARGS} && ./build_calculation_servers ${OCHEM_BUILD_ARGS} && cd ${OCHEM_HOME}/openochem/build/release && zip -9 ${OCHEM_HOME}/openochem/env/ochemenv/ochem.release ochem.war metaserver.war *.zip && rm -rf ${OCHEM_HOME}/openochem/build/release
+
+USER root
+
+RUN  mv ${OCHEM_HOME}/openochem/env/ochemenv/ochem.release /ochem/
+
+#ENTRYPOINT ["${OCHEM_HOME}/entrypoint.sh"]
