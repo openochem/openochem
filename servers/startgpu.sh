@@ -7,6 +7,11 @@ WEB=http://localhost:7080/metaserver/
 SERVER=${SERVER//\/}
 DIRECTORY=$SERVERPATH/$SERVER/runs
 
+if [ "$EUID" -eq 0 ]
+  then echo "Cannot start servers with root privileges"
+  exit
+fi
+
 if [ -z $SERVER ]; then 
    echo "use as $0 servername"; 
 else
