@@ -31,4 +31,8 @@ USER root
 
 RUN  mv ${OCHEM_HOME}/openochem/env/ochemenv/ochem.release /ochem/
 
-#ENTRYPOINT ["${OCHEM_HOME}/entrypoint.sh"]
+COPY ./docker/cfg ${OCHEM_HOME}/openochem/env/ochemenv/cfg
+
+COPY ./docker/ochem_entrypoint.sh ${OCHEM_HOME}/entrypoint.sh
+
+#ENTRYPOINT ["bash", "entrypoint.sh"]

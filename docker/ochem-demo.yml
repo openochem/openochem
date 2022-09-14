@@ -11,11 +11,16 @@ services:
       - 27017:27017
     volumes: 
       - ochem-mongo-data:/data/db
+    networks:
+      - ochem-demo
 #    environment:
 #      MONGO_INITDB_ROOT_USERNAME: root
 #      MONGO_INITDB_ROOT_PASSWORD: example
 
   ochem-mariadb:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile-mariadb
     image: ochem-mariadb:latest
     container_name: ochem-mariadb
     restart: always
@@ -25,6 +30,25 @@ services:
        - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=true
     volumes:
        - ochem-demo-data:/var/lib/mysql:rw
+    networks:
+      - ochem-demo
+
+  ochem-demo:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: ochem
+    container_name: ochem-demo
+    restart: always
+    ports:
+      - 8080:8080
+      - 7080:7080
+    networks:
+      - ochem-demo
+    command: bash entrypoint.sh
+    depends_on:
+      - ochem-mariadb
+      - ochem-mongo
 
 #  mongo-express:
 #    image: mongo-express
@@ -41,3 +65,10 @@ volumes:
       name: ochem-demo-data
    ochem-mongo-data:
       name: ochem-mongo-data
+
+networks:
+  ochem-demo:
+    name: ochem-demo
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1500

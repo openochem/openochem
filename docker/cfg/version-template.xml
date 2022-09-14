@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<server-runner-config current-version="11-08-02-14-16-27.zip">
+	<mongoDbURL>mongodb://localhost</mongoDbURL>
+	<ochemURL>http://localhost:8080/</ochemURL>
+	<chemengine>CDK</chemengine>
+    <config for="Obabel">
+        <param value="jdbc:mysql://localhost/structures_demo?autoReconnect=true" name="DBURL"/>
+        <param value="ochem" name="DBUSERNAME"/>
+        <param value="ochem_db_password" name="DBPASSWORD"/>
+    </config>
+    <config for="Corina">
+        <param value="jdbc:mysql://localhost/structures_demo?autoReconnect=true" name="DBURL"/>
+        <param value="ochem" name="DBUSERNAME"/>
+        <param value="ochem_db_password" name="DBPASSWORD"/>
+    </config>
+    <config for="Obgen">
+        <param value="jdbc:mysql://localhost/structures_demo?autoReconnect=true" name="DBURL"/>
+        <param value="ochem" name="DBUSERNAME"/>
+        <param value="ochem_db_password" name="DBPASSWORD"/>
+    </config>
+    <config for="Balloon">
+        <param value="jdbc:mysql://localhost/structures_demo?autoReconnect=true" name="DBURL"/>
+        <param value="ochem" name="DBUSERNAME"/>
+        <param value="ochem_db_password" name="DBPASSWORD"/>
+    </config>
+</server-runner-config>

@@ -3,8 +3,9 @@
 set -u
 set +e
 
-OCHEM_HOSTNAME=${OCHEM_HOSTNAME:-localhost}
+export OCHEM_HOSTNAME=${OCHEM_HOSTNAME:-localhost}
 echo "Starting ochem on ${OCHEM_HOSTNAME}."
+export OCHEM_SERVER=${OCHEM_SERVER:-ochem}
 
 # prepare files
 echo "Preparing files..."
@@ -43,17 +44,48 @@ if [ -n "$NAME" ]; then
 
 fi
 
-chmod +x openochem/env/*
-chmod +x openochem/servers/*
-cd openochem/env
+chmod +x env/*
+chmod +x servers/*
+cd env
 ln -sfn ochemenv/tmp/ochem-tomcat/logs/catalina.out tomcat.out
 ln -sfn ochemenv/tmp/metaserver-tomcat/logs/catalina.out meta.out
-mkdir -p ochem/tmp/cs_release/
-cp -r ochemenv/* /ochem/*
+mkdir -p /ochem/tmp/cs_release/
+cp -r ochemenv/. /ochem/
 ln -sfn /etc/ochem ochemenv/tmp
 
 echo "Done."
 
-echo "Starting tomcats..."
-bash /etc/source/ochem/bin/startochem.sh
-echo "Done..."
+echo "Unpacking and starting tomcats..."
+export METAMEMORY=2048
+export OCHEMEMORY=4096
+sh /etc/source/ochem/bin/startochem.sh
+
+echo "Waiting for online status..."
+sleep 15
+
+echo "Unpacking and starting servers..."
+cd ../servers
+SERVER=$OCHEM_SERVER
+SERVERPATH=`pwd`
+WEB=http://$NAME:7080/metaserver/
+
+SERVER=${SERVER//\/}
+DIRECTORY=$SERVERPATH/$SERVER/runs
+mkdir -p $DIRECTORY
+mkdir -p /etc/cs_servers
+
+rm -rf $DIRECTORY
+   rm -f $SERVERPATH/$SERVER/release.zip
+   wget -O /etc/ochem/release.zip $WEB/update
+   ln -sfn /etc/cs_servers $DIRECTORY/servers
+   ln -sfn /tmp $DIRECTORY/tmp
+   ln -sfn $SERVERPATH/$SERVER/* /etc/ochem
+
+   sh /etc/source/ochem/bin/startservers.sh
+   echo "started $SERVER"
+
+echo "All Done!"
+cd ${OCHEM_HOME}
+
+tail -f openochem/env/tomcat.out -f openochem/env/meta.out
+
