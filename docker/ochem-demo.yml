@@ -36,7 +36,7 @@ services:
   ochem-demo:
     build:
       context: ..
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile-demo
     image: ochem
     container_name: ochem-demo
     restart: always
@@ -45,7 +45,14 @@ services:
       - 7080:7080
     networks:
       - ochem-demo
-    command: bash entrypoint.sh
+    command: bash deploy.sh
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
     depends_on:
       - ochem-mariadb
       - ochem-mongo

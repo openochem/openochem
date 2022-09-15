@@ -7,21 +7,11 @@ ARG OCHEM_BUILD_ARGS="-r main"
 ENV OCHEM_USER=${OCHEM_USER}
 ENV OCHEM_HOME=${OCHEM_HOME}
 
-ARG MAVEN_VERSION=3.8.6
-ARG BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
-
-RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
- && wget -O /tmp/apache-maven.tar.gz ${BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
- && tar -xzf /tmp/apache-maven.tar.gz -C /usr/share/maven --strip-components=1 \
- && rm -f /tmp/apache-maven.tar.gz \
- && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
-
-ENV MAVEN_HOME /usr/share/maven
-ENV MAVEN_CONFIG "${OCHEM_USER}/.m2"
-
 RUN useradd -m ${OCHEM_USER}
 USER ${OCHEM_USER}
 WORKDIR ${OCHEM_HOME}
+
+ENV MAVEN_CONFIG "${OCHEM_USER}/.m2"
 
 RUN git clone https://github.com/openochem/openochem.git && chmod -R +x openochem && cd openochem/build/packages && ./install_testsuites.sh
 
@@ -33,6 +23,4 @@ RUN  mv ${OCHEM_HOME}/openochem/env/ochemenv/ochem.release /ochem/
 
 COPY ./docker/cfg ${OCHEM_HOME}/openochem/env/ochemenv/cfg
 
-COPY ./docker/ochem_entrypoint.sh ${OCHEM_HOME}/entrypoint.sh
-
-#ENTRYPOINT ["bash", "entrypoint.sh"]
+COPY ./docker/deploy.sh ${OCHEM_HOME}/deploy.sh

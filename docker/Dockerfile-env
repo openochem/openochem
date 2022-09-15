@@ -190,6 +190,19 @@ RUN chmod +x /etc/source/*/* && chmod 777 -R /etc/source && chmod 777 -R /etc/cs
 
 RUN chmod +x /opt/conda/etc/profile.d/conda.sh && mkdir /ochem && updatedb && rm -rf /etc/ochem/*
 
+# maven for building source
+ARG MAVEN_VERSION=3.8.6
+ARG BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
+
+RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
+ && wget -O /tmp/apache-maven.tar.gz ${BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
+ && tar -xzf /tmp/apache-maven.tar.gz -C /usr/share/maven --strip-components=1 \
+ && rm -f /tmp/apache-maven.tar.gz \
+ && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
+
+ENV MAVEN_HOME /usr/share/maven
+ENV MAVEN_CONFIG "/usr/share/maven/.m2"
+
 
 ENV RDBASE=/workspace/rdkit
 ENV PATH=/opt/conda/bin/:/usr/local/cuda/bin:$PATH
@@ -200,3 +213,5 @@ ENV OMP_NUM_THREADS=1
 ENV CUDA_DEVICE_ORDER=PCI_BUS_ID
 ENV OCHEMEMORY=2048
 ENV METAMEMORY=1024docker
+
+RUN #echo 'eval "$(command conda shell.bash hook 2> /dev/null)"' >>  /root/.bashrc
