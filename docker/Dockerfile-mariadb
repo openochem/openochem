@@ -1,0 +1,15 @@
+FROM mariadb:latest
+
+ENV OCHEM_ROOT /ochem
+
+RUN mkdir ${OCHEM_ROOT}
+
+COPY ./demo-data/ ${OCHEM_ROOT}/demo-data
+
+COPY ./docker/db_entrypoint.sh /usr/local/bin/db_entrypoint.sh
+
+WORKDIR ${OCHEM_ROOT}/demo-data/
+
+ENTRYPOINT ["db_entrypoint.sh"]
+
+CMD ["mariadbd"]
