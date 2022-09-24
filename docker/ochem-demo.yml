@@ -1,0 +1,81 @@
+# Use root/example as user/password credentials
+version: '3.1'
+
+services:
+
+  ochem-mongo:
+    image: mongo:4.2
+    container_name: ochem-mongo
+    restart: always
+    ports:
+      - 27017:27017
+    volumes: 
+      - ochem-mongo-data:/data/db
+    networks:
+      - ochem-demo
+#    environment:
+#      MONGO_INITDB_ROOT_USERNAME: root
+#      MONGO_INITDB_ROOT_PASSWORD: example
+
+  ochem-mariadb:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile-mariadb
+    image: ochem-mariadb:latest
+    container_name: ochem-mariadb
+    restart: always
+    ports:
+       - 3306:3306
+    environment:
+       - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=true
+    volumes:
+       - ochem-demo-data:/var/lib/mysql:rw
+    networks:
+      - ochem-demo
+
+  ochem-demo:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile-demo
+    image: ochem
+    container_name: ochem-demo
+    restart: always
+    ports:
+      - 8080:8080
+      - 7080:7080
+    networks:
+      - ochem-demo
+    command: bash deploy.sh
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
+    depends_on:
+      - ochem-mariadb
+      - ochem-mongo
+
+#  mongo-express:
+#    image: mongo-express
+#    restart: always
+#    ports:
+#      - 8081:8081
+#    environment:
+#      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+#      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+#      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+
+volumes:
+   ochem-demo-data:
+      name: ochem-demo-data
+   ochem-mongo-data:
+      name: ochem-mongo-data
+
+networks:
+  ochem-demo:
+    name: ochem-demo
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1500
