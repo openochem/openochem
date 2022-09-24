@@ -279,6 +279,7 @@ pip install git+https://github.com/mordred-descriptor/mordred
 pip install tensorflow_addons
 pip install cupy-cuda${VERSION}${CUDA}
 pip install chainer
+pip install molvs
 
 pip install haste_pytorch # ATTFP
 
