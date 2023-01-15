@@ -72,7 +72,7 @@ mv gsfragl ../gsfragl-aarch64
 
 rm -r $SOURCE
 
-apacheversion="9.0.62"
+apacheversion="9.0.71"
 TOM=9
 apachetomcat="apache-tomcat-"$apacheversion
 package="$HOME/ochem"
