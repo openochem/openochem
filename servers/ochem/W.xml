@@ -3,7 +3,7 @@
     <metaserverURL>http://localhost:7080/metaserver</metaserverURL>
     <ochemURL>http://localhost:8080</ochemURL>
     <java-home>/usr/lib/jvm/java-8-openjdk-amd64/jre</java-home>
-    <memoryLimit>1024</memoryLimit>
+    <memoryLimit>4096</memoryLimit>
     <sleepTime>30</sleepTime>
     <sleepTimeWhileCalculating>60</sleepTimeWhileCalculating>
      <chemengine>CDK</chemengine>
