@@ -22,7 +22,6 @@
         <application>MolPrint</application>
         <application>MORDRED</application>
         <application>OEstate</application>
-        <application>PADEL2</application>
         <application>PyDescriptor</application>
         <application>QNPR</application>
         <application>RDKIT</application>
@@ -56,7 +55,5 @@
         <application>WEKA-RF</application>
         <application>XGBOOST</application>
         
-        <application>MERA</application>
-        <application>MERSY</application>
     </supported-applications>
 </server-runner-config>

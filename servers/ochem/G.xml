@@ -8,16 +8,11 @@
     <sleepTimeWhileCalculating>60</sleepTimeWhileCalculating>
      <chemengine>CDK</chemengine>
         <supported-applications>
-        <application>ATTFP</application>
         <application>ChemProp</application>
         <application>CNF</application>
         <application>DEEPCHEM</application>
         <application>DLCA</application>
         <application>DNN</application>
-        <application>EAGCNG</application>
-        <application>GNN</application>
-        <application>HAMNET</application>
-        <application>IMGQSAR</application>
         <application>KGCNN</application>
         <application>LSSVMG</application>
         <application>TRANSNN</application>
