@@ -47,12 +47,12 @@ services:
       - ochem-demo
     command: bash deploy.sh
     deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [ gpu ]
+      #resources:
+        #reservations:
+          #devices:
+          #  - driver: nvidia
+          #    count: all
+          #    capabilities: [ gpu ]
     depends_on:
       - ochem-mariadb
       - ochem-mongo
