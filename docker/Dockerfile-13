@@ -1,4 +1,5 @@
 FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu22.04
+#newest docker image
 
 ARG SOURCE=/tmp/ochem-external-tools/
 
