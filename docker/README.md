@@ -1,6 +1,6 @@
 # Building and Running with Docker
 
-Nvidia docker is required. Follow installation instructions at https://github.com/NVIDIA/nvidia-docker
+Installation and scripts are for the "normal" docker. 
 
 ## The Environment Image
 
@@ -27,7 +27,8 @@ docker-compose -f docker/ochem-demo.yml up
 ```
 
 
-N.B.! If using "normal" docker, disable nvidia docker requirements in docker/ochem-demo.yml
+N.B.! If you would like to use GPU, follow installation instructions at https://github.com/NVIDIA/nvidia-docker 
+and enable  nvidia docker requirements in docker/ochem-demo.yml  and start GPU-enabled servers (servers/gpu)
 
       #resources:
         #reservations:
