@@ -1,5 +1,7 @@
 # Building and Running with Docker
 
+Nvidia docker is required. Follow installation instructions at https://github.com/NVIDIA/nvidia-docker
+
 ## The Environment Image
 
 First, you need to build the environment image with all dependencies. Just run the following from the root of this repository:
@@ -23,3 +25,13 @@ If successful, you should be able to run the whole ochem ecosystem as follows:
 ```bash
 docker-compose -f docker/ochem-demo.yml up
 ```
+
+
+N.B.! If using "normal" docker, disable nvidia docker requirements in docker/ochem-demo.yml
+
+      #resources:
+        #reservations:
+          #devices:
+          #  - driver: nvidia
+          #    count: all
+          #    capabilities: [ gpu ]
