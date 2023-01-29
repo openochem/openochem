@@ -56,9 +56,7 @@ ln -sfn /etc/ochem ochemenv/tmp
 echo "Done."
 
 echo "Unpacking and starting tomcats..."
-export METAMEMORY=2048
-export OCHEMEMORY=4096
-sh /etc/source/ochem/bin/startochem.sh
+sh /etc/source/ochem/bin/startochem.sh METAMEMORY=2048 OCHEMEMORY=4096
 
 echo "Waiting for online status..."
 sleep 15
