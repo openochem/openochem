@@ -20,7 +20,7 @@ if [ -n "$NAME" ]; then
 	fi
 	sed -i -r "s|(ochemURL).*|\1>http://$NAME:8080</\1>|" env/ochemenv/cfg/version-template.xml
 	sed -i -r "s|(mongoDbURL).*|\1>mongodb://ochem-mongo</\1>|" env/ochemenv/cfg/version-template.xml
-	sed -i -r "s|(jdbc:mysql://).*(/struc.*)|\1ochem-mariadb\2|" env/ochemenv/cfg/version-template.xml
+	sed -i -r "s|(jdbc:mariadb://).*(/struc.*)|\1ochem-mariadb\2|" env/ochemenv/cfg/version-template.xml
 
 	sed -i -r "s|^(ochem.root_host).*|\1 = http://$NAME:8080|" env/ochemenv/cfg/ochem.cfg
 	sed -i -r "s|^(metaserver.default_url).*|\1 = http://$NAME:7080/metaserver|"  env/ochemenv/cfg/ochem.cfg

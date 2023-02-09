@@ -4,22 +4,22 @@
 	<ochemURL>http://localhost:8080/</ochemURL>
 	<chemengine>CDK</chemengine>
     <config for="Obabel">
-        <param value="jdbc:mysql://localhost/structures_demo?autoReconnect=true" name="DBURL"/>
+        <param value="jdbc:mariadb://localhost/structures_demo?autoReconnect=true" name="DBURL"/>
         <param value="ochem" name="DBUSERNAME"/>
         <param value="ochem_db_password" name="DBPASSWORD"/>
     </config>
     <config for="Corina">
-        <param value="jdbc:mysql://localhost/structures_demo?autoReconnect=true" name="DBURL"/>
+        <param value="jdbc:mariadb://localhost/structures_demo?autoReconnect=true" name="DBURL"/>
         <param value="ochem" name="DBUSERNAME"/>
         <param value="ochem_db_password" name="DBPASSWORD"/>
     </config>
     <config for="Obgen">
-        <param value="jdbc:mysql://localhost/structures_demo?autoReconnect=true" name="DBURL"/>
+        <param value="jdbc:mariadb://localhost/structures_demo?autoReconnect=true" name="DBURL"/>
         <param value="ochem" name="DBUSERNAME"/>
         <param value="ochem_db_password" name="DBPASSWORD"/>
     </config>
     <config for="Balloon">
-        <param value="jdbc:mysql://localhost/structures_demo?autoReconnect=true" name="DBURL"/>
+        <param value="jdbc:mariadb://localhost/structures_demo?autoReconnect=true" name="DBURL"/>
         <param value="ochem" name="DBUSERNAME"/>
         <param value="ochem_db_password" name="DBPASSWORD"/>
     </config>
