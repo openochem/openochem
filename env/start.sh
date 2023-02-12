@@ -14,7 +14,8 @@ fi
 
 mkdir -p $DIR/tmp
 singularity  instance start -e -B $DIR:/ochem -B $DIR/tmp:/etc/ochem/ $DIR/$NAME.sif $NAME
-singularity exec instance://ochemenv /etc/source/ochem/bin/startochem.sh >/dev/null 2>/dev/null
+#OCHEMEMORY=4096 METAMEMORY=1024 dynamically allocate memory for OCHEM and METASERVER
+singularity exec instance://ochemenv /etc/source/ochem/bin/startochem.sh OCHEMEMORY=4096 METAMEMORY=1024 >/dev/null 2>/dev/null
 
 echo "OCHEM is starting and will be available in few minutes. Waiting 15 seconds to start servers."
 
