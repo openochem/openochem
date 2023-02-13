@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.3.1-devel-ubuntu20.04
+FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu22.04
 
 ARG SOURCE=/tmp/ochem-external-tools/
 
@@ -28,9 +28,7 @@ RUN cd /tmp ; git clone https://github.com/openochem/ochem-external-tools.git &&
 # silicos-it
     cd && mkdir -p /etc/source/silicos-it && git clone https://github.com/silicos-it/strip-it.git && cd strip-it && cmake CMakeLists.txt && make && cp strip-it  /etc/source/silicos-it/strip-it-aarch64 && cd && rm -rf strip-it && \
 #R latest version
-    apt update && apt install -y r-base && /usr/bin//Rscript -e 'install.packages("pls",repos="http://cran.us.r-project.org")'
-
-# does not work yet && /usr/bin//Rscript -e 'install.packages("randomForest",repos="http://cran.us.r-project.org")'
+    apt update && apt install -y r-base && /usr/bin//Rscript -e 'install.packages("pls",repos="http://cran.us.r-project.org")' && /usr/bin//Rscript -e 'install.packages("randomForest",repos="http://cran.us.r-project.org")'
 
 #Tomcats
 ARG apacheversion="9.0.71"
@@ -55,7 +53,7 @@ RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate b
 ARG VERSION=11
 ARG CUDA=3
 ARG CUPY=cupy-cuda$VERSION$CUDA
-ARG PYTORCHMAIN=1.12 # last supported version for this nvidia library 
+ARG PYTORCHMAIN=1.13 # last supported version for this nvidia library 
 ARG PYTORCHMIN=1
 ARG TENSOR=2.11.0
 ARG KGCN=2.0.4
