@@ -61,7 +61,7 @@ RUN wget --quiet https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86
 #RUN add-apt-repository ppa:mhier/libboost-latest && apt update && apt-get -y install build-essential g++ autotools-dev libicu-dev build-essential libbz2-dev libboost$BOOST-dev gfortran cmake && rm /bin/sh && ln -s /bin/bash /bin/sh && \
 #RDKit build configuration and dependencies
 #   mkdir /workspace && cd /workspace && eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate base && git clone https://github.com/rdkit/rdkit.git && conda install -y joblib matplotlib cmake cairo pillow eigen pkg-config boost-cpp=$BOOST boost=$BOOST py-boost=$BOOST && \
-#   pip install --no-cache-dir -U numpy$NUMPY && apt-get -y install flex bison && mkdir -p /workspace/rdkit/build && cd /workspace/rdkit/build && \
+#   pip install --no-cache-dir -U numpy && apt-get -y install flex bison && mkdir -p /workspace/rdkit/build && cd /workspace/rdkit/build && \
 #   cmake -DCMAKE_INSTALL_PREFIX=/workspace/rdkit/ -DPYTHON_EXECUTABLE=/opt/conda/bin/python -DRDK_USE_FLEXBISON=ON -DRDK_BUILD_PYTHON_WRAPPERS=ON -DRDK_BUILD_CPP_TESTS=ON -DTHREADS_PTHREAD_ARG=OFF -DPYTHON_LIBRARY=/opt/conda/lib -DRDK_BUILD_AVALON_SUPPORT=ON -DRDK_BUILD_CAIRO_SUPPORT=ON -DRDK_BUILD_CPP_TESTS=OFF -DRDK_BUILD_INCHI_SUPPORT=ON -DRDK_BUILD_FREESASA_SUPPORT=ON -DRDK_BUILD_YAEHMOP_SUPPORT=ON -DPy_ENABLE_SHARED=1 -DEIGEN3_INCLUDE_DIR=/opt/conda/include/eigen3 .. && \
 #   make -$JNN install && cd .. && rm -rf build && rm -rf .git && conda clean -y --all
 #ENV RDBASE=/workspace/rdkit

@@ -12,6 +12,7 @@ echo "Preparing files..."
 cd openochem
 
 NAME=${OCHEM_HOSTNAME}
+ARCH=`dpkg --print-architecture`
 
 if [ -n "$NAME" ]; then
 	if [[ "$NAME" == *@(\/|:)* ]]; then
@@ -32,12 +33,14 @@ if [ -n "$NAME" ]; then
 
 	for i in servers/ochem/*.xml ; do
 		[[ -f "$i" ]] || continue
+		sed -i -r "s|amd64|$ARCH|" "$i"
 		sed -i -r "s|(metaserverURL).*|\1>http://$NAME:7080/metaserver</\1>|" "$i"
 		sed -i -r "s|(ochemURL).*|\1>http://$NAME:8080</\1>|" "$i"
 	done
 
 	for i in servers/gpu/*.xml ; do
 		[[ -f "$i" ]] || continue
+		sed -i -r "s|amd64|$ARCH|" "$i"
 		sed -i -r "s|(metaserverURL).*|\1>http://$NAME:7080/metaserver</\1>|" "$i"
 		sed -i -r "s|(ochemURL).*|\1>http://$NAME:8080</\1>|" "$i"
 	done

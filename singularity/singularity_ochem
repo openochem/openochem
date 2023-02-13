@@ -207,7 +207,7 @@ cd /workspace
 git clone https://github.com/rdkit/rdkit.git 
 
 conda install -y joblib matplotlib cmake cairo pillow eigen pkg-config boost-cpp=$BOOST boost=$BOOST py-boost=$BOOST
-pip install -U numpy$NUMPY
+pip install -U numpy
 apt-get -y install flex bison
 
 mkdir -p /workspace/rdkit/build
@@ -242,7 +242,7 @@ pip install torch-geometric #==1.7.2 # FIX for MKIT
 pip install pytorch-lightning
 conda install -y scikit-learn
 
-conda install -c conda-forge openbabel 
+conda install -y -c conda-forge openbabel 
 
 ##conda install -c anaconda cudatoolkit=$CUDAPATH ## already installed for pytorch
 pip install --upgrade pip
