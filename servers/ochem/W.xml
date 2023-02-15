@@ -8,21 +8,61 @@
     <sleepTimeWhileCalculating>60</sleepTimeWhileCalculating>
      <chemengine>CDK</chemengine>
         <supported-applications>
+
+         <application>ALogPS</application>
+        <application>CDDD</application>
+        <application>CDK2</application>
+        <application>ECFP</application>
+        <application>EPA</application>
+        <application>Fragmentor</application>
+        <application>GSFRAG</application>
+        <application>InductiveDescriptors</application>
+        <application>JPLOGP</application>
+        <application>MAP4</application>
+        <application>MOLD2</application>
+        <application>MolPrint</application>
+        <application>MORDRED</application>
+        <application>OEstate</application>
+        <application>PyDescriptor</application>
+        <application>QNPR</application>
+        <application>RDKIT</application>
+        <application>SilicosItScaffold</application>
+        <application>SIRMS</application>
+        <application>Spectrophores</application>
+        <application>StructuralAlerts</application>
+        
+        <application>KrakenX</application>
+        <application>MOPAC</application>
+        <application>MOPAC2016</application>
+        <application>SIGMA</application>
+        
+        <application>BALLOON</application>
+        <application>OBABEL</application>
+        
         <application>ASNN</application>
+        <application>DEEP</application>
+        <application>FSMLR</application>
+        <application>KNN</application>
+        <application>KPLS</application>
+        <application>LEVERAGE</application>
+        <application>LIBSVM</application>
+        <application>MACAU</application>
+        <application>MLRA</application>
+        <application>MMPfrag</application>
+        <application>PLS</application>
+        <application>RFR</application>
+        <application>SKLEARN</application>
+        <application>WEKA-J48</application>
+        <application>WEKA-RF</application>
+        <application>XGBOOST</application>
+
         <application>Bagging</application>
         <application>CompareScaffolds</application>
         <application>Consensus</application>
         <application>CrossValidation</application>
         <application>Descriptors</application>
-        <application>FSMLR</application>
-        <application>LEVERAGE</application>
-        <application>MLRA</application>
         <application>MolStandartizer</application>
-        <application>PLS</application>
         <application>Selection</application>
         <application>Workflow</application>
-        
-        <application>ALogPS</application>
-        <application>OESTATE</application>
     </supported-applications>
 </server-runner-config>
