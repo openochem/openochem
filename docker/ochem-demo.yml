@@ -24,6 +24,7 @@ services:
     image: ochem-mariadb:latest
     container_name: ochem-mariadb
     restart: always
+    command: --max_allowed_packet=1G
     ports:
        - 3306:3306
     environment:
