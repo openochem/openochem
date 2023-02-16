@@ -5,7 +5,7 @@
     <java-home>/usr/lib/jvm/java-8-openjdk-amd64/jre</java-home>
     <memoryLimit>4096</memoryLimit>
     <gpuCard>0</gpuCard>
-    <sleepTime>30</sleepTime>
+    <sleepTime>60</sleepTime>
     <sleepTimeWhileCalculating>60</sleepTimeWhileCalculating>
      <chemengine>CDK</chemengine>
         <supported-applications>
