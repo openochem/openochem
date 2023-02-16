@@ -36,7 +36,7 @@ RUN cd /tmp ; git clone https://github.com/openochem/ochem-external-tools.git &&
 # GSFRAG
     cd /etc/source/gsfrag/source && bash make.sh && mv gsfrag ../gsfrag-linux && mv gsfragl ../gsfragl-linuxi && \
 # OpenBabel 2.4.1 required for specrophores
-    cd && wget https://sourceforge.net/projects/openbabel/files/openbabel/2.4.1/openbabel-2.4.1.tar.gz/download && tar -zxf download && rm download && cd openbabel-2.4.1 && mkdir build && cd build/ && cmake .. && make -$JNN && make install && cd && rm -rf openbabel-2.4.1 && \
+    cd && wget https://github.com/openbabel/openbabel/archive/refs/tags/openbabel-2-4-1.tar.gz && tar -zxf openbabel-2-4-1.tar.gz && rm openbabel-2-4-1.tar.gz && cd openbabel-openbabel-2-4-1 && mkdir build && cd build/ && cmake .. && make -$JNN && make install && cd && rm -rf openbabel* && \
 # silicos-it
     cd && mkdir -p /etc/source/silicos-it && git clone https://github.com/silicos-it/strip-it.git && cd strip-it && cmake CMakeLists.txt && make && cp strip-it  /etc/source/silicos-it/strip-it-linux && cd && rm -rf strip-it && \
 #R latest version
