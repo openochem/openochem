@@ -32,14 +32,13 @@ services:
       - ochem-demo
 
   ochem-demo:
+    hostname: localhost
     build:
       context: ..
       dockerfile: docker/Dockerfile-demo
     image: ochem
     container_name: ochem-demo
     restart: always
-    environment:
-      - OCHEM_HOSTNAME=localhost
     ports:
       - 8080:8080
       - 7080:7080

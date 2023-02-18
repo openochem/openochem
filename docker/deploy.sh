@@ -3,15 +3,14 @@
 set -u
 set +e
 
-export OCHEM_HOSTNAME=${OCHEM_HOSTNAME:-localhost}
-echo "Starting ochem on ${OCHEM_HOSTNAME}."
+echo "Starting ochem on ${HOSTNAME}."
 export OCHEM_SERVER=${OCHEM_SERVER:-ochem}
 
 # prepare files
 echo "Preparing files..."
 cd openochem
 
-NAME=${OCHEM_HOSTNAME}
+NAME=${HOSTNAME}
 ARCH=`dpkg --print-architecture`
 
 if [ -n "$NAME" ]; then
