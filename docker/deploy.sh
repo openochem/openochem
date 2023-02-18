@@ -36,6 +36,7 @@ if [ -n "$NAME" ]; then
 		sed -i -r "s|amd64|$ARCH|" "$i"
 		sed -i -r "s|(metaserverURL).*|\1>http://$NAME:7080/metaserver</\1>|" "$i"
 		sed -i -r "s|(ochemURL).*|\1>http://$NAME:8080</\1>|" "$i"
+        sed -i -r "s|(mongoDbURL).*|\1>http://$NAME</\1>|" "$i"
 	done
 
 	for i in servers/gpu/*.xml ; do
@@ -43,6 +44,7 @@ if [ -n "$NAME" ]; then
 		sed -i -r "s|amd64|$ARCH|" "$i"
 		sed -i -r "s|(metaserverURL).*|\1>http://$NAME:7080/metaserver</\1>|" "$i"
 		sed -i -r "s|(ochemURL).*|\1>http://$NAME:8080</\1>|" "$i"
+        sed -i -r "s|(mongoDbURL).*|\1>http://$NAME</\1>|" "$i"
 	done
 
 fi
