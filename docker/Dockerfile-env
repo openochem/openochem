@@ -23,8 +23,6 @@ RUN cd /tmp ; git clone https://github.com/openochem/ochem-external-tools.git &&
     mkdir $HOME  && cd $HOME && cp -r $SOURCE/ochem/ . && mkdir -p /etc/cs_servers && mkdir -p /etc/source && cp -r $SOURCE/* /etc/source && \
 # Fragmentor
     mkdir -p /etc/source/fragmentor/ && wget https://web.archive.org/web/20150219162247/http://infochim.u-strasbg.fr/recherche/Download/Fragmentor/Fragmentor2014_Linux-64bit && mv Fragmentor2014_Linux-64bit /etc/source/fragmentor/isida-fragmentor-linux && \ 
-# WEKA
-    cd && mkdir -p /etc/source/weka && wget https://sourceforge.net/projects/weka/files/weka-3-6/3.6.15/weka-3-6-15.zip/download && unzip download && cp weka-3-6-15/weka.jar /etc/source/weka && cd && rm -rf download weka-3-6-15 && \
 # MOPAC2016
     cd && mkdir -p /etc/source/mopac2016 && mkdir mop && cd mop && wget http://openmopac.net/MOPAC2016_for_Linux_64_bit.zip && unzip MOPAC2016_for_Linux_64_bit.zip && cp MOPAC2016.exe /etc/source/mopac2016/MOPAC2016-linux && cd && rm -rf mop && \  
 # KRAKENX
