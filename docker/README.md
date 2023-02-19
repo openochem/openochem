@@ -41,4 +41,4 @@ N.B.! If you upgrade from the previous version, delete flyway_schema_history tab
 
 docker exec ochem-mariadb mariadb ochem_demo -e "drop table flyway_schema_history"
 
-If you have a local installation of mysql, it will interfere with the docker. Stop local mysql before running "up" command
+If you have a local installation of mysql, it will interfere with the docker. Stop the local mysql before running "up" command

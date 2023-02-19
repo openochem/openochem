@@ -1,0 +1,22 @@
+FROM ochem-env
+
+ARG OCHEM_USER=openochem
+ARG OCHEM_HOME="/home/${OCHEM_USER}"
+ARG OCHEM_BUILD_ARGS="-r main"
+
+ENV OCHEM_USER=${OCHEM_USER}
+ENV OCHEM_HOME=${OCHEM_HOME}
+
+RUN useradd -m ${OCHEM_USER}
+USER ${OCHEM_USER}
+WORKDIR ${OCHEM_HOME}
+
+USER root
+
+RUN git clone https://github.com/openochem/openochem.git && chmod -R +x openochem 
+
+COPY ./docker/ochem.release /ochem/
+COPY ./docker/cfg ${OCHEM_HOME}/openochem/env/ochemenv/cfg
+COPY ./docker/deploy.sh ${OCHEM_HOME}/deploy.sh
+
+# to be used if you have compiled ochem.release image

@@ -1,5 +1,7 @@
 FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu22.04
 
+#version for ARM64 (Apple m1/m2)
+
 ARG SOURCE=/tmp/ochem-external-tools/
 
 # indicate on how many CPUs it should be compiled
