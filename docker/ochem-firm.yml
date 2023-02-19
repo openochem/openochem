@@ -35,7 +35,7 @@ services:
     hostname: localhost
     build:
       context: ..
-      dockerfile: docker/optional/Dockerfile-firm
+      dockerfile: docker/Dockerfile-firm
     image: ochem
     container_name: ochem-demo
     restart: always
