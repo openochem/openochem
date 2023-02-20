@@ -16,6 +16,8 @@ RUN apt-get -qq update --fix-missing && apt-get update && \
    apt-get -y install software-properties-common screen libgomp1 && apt-get -y install cmake libopenblas-base libomp-dev && apt-get -y install ca-certificates libglib2.0-0 libxext6 libsm6 libxrender1
 
 ARG HOME=/etc/ochem
+ARG WGET="wget --no-check-certificate"
+ENV GIT_SSL_NO_VERIFY=true
 
 #Installing external tools from OpenOchem source repositories
 RUN cd /tmp ; git clone https://github.com/openochem/ochem-external-tools.git && \
@@ -24,7 +26,7 @@ RUN cd /tmp ; git clone https://github.com/openochem/ochem-external-tools.git &&
 # GSFRAG
     cd /etc/source/gsfrag/source && bash make.sh && mv gsfrag ../gsfrag-aarch64 && mv gsfragl ../gsfragl-aarch64 && \
 # OpenBabel 2.4.1 required for specrophores
-    cd && wget https://github.com/openbabel/openbabel/archive/refs/tags/openbabel-2-4-1.tar.gz && tar -zxf openbabel-2-4-1.tar.gz && rm openbabel-2-4-1.tar.gz && cd openbabel-openbabel-2-4-1 && sed -i 's|-119|137|' src/formats/pngformat.cpp && sed -i 's|-16|240|'  src/formats/yasaraformat.cpp && mkdir build && cd build/ && cmake .. && make -$JNN && make install && cd && rm -rf openbabel* && \
+    cd && $WGET https://github.com/openbabel/openbabel/archive/refs/tags/openbabel-2-4-1.tar.gz && tar -zxf openbabel-2-4-1.tar.gz && rm openbabel-2-4-1.tar.gz && cd openbabel-openbabel-2-4-1 && sed -i 's|-119|137|' src/formats/pngformat.cpp && sed -i 's|-16|240|'  src/formats/yasaraformat.cpp && mkdir build && cd build/ && cmake .. && make -$JNN && make install && cd && rm -rf openbabel* && \
 # silicos-it
     cd && mkdir -p /etc/source/silicos-it && git clone https://github.com/silicos-it/strip-it.git && cd strip-it && cmake CMakeLists.txt && make && cp strip-it  /etc/source/silicos-it/strip-it-aarch64 && cd && rm -rf strip-it && \
 #R latest version
@@ -36,11 +38,11 @@ ARG TOM=9
 ARG apachetomcat="apache-tomcat-"$apacheversion
 ARG package="$HOME/ochem"
 ARG conf_dir="$package/conf"
-RUN cd && wget http://archive.apache.org/dist/tomcat/tomcat-$TOM/v$apacheversion/bin/$apachetomcat.zip && unzip $apachetomcat.zip && cp -r $apachetomcat "$HOME/ochem-tomcat" && rm -rf "$HOME/ochem-tomcat/webapps/ROOT" && mv $apachetomcat "$HOME/metaserver-tomcat" && rm -rf $apachetomcat.zip && ln -sf $conf_dir/tomcat/ochem-server.xml $HOME/ochem-tomcat/conf/server.xml && ln -sf $conf_dir/tomcat/metaserver-server.xml $HOME/metaserver-tomcat/conf/server.xml &&  mkdir /etc/ochem/cs_release && cd $HOME ; zip -9 -r /home/ochem.zip *
+RUN cd && $WGET http://archive.apache.org/dist/tomcat/tomcat-$TOM/v$apacheversion/bin/$apachetomcat.zip && unzip $apachetomcat.zip && cp -r $apachetomcat "$HOME/ochem-tomcat" && rm -rf "$HOME/ochem-tomcat/webapps/ROOT" && mv $apachetomcat "$HOME/metaserver-tomcat" && rm -rf $apachetomcat.zip && ln -sf $conf_dir/tomcat/ochem-server.xml $HOME/ochem-tomcat/conf/server.xml && ln -sf $conf_dir/tomcat/metaserver-server.xml $HOME/metaserver-tomcat/conf/server.xml &&  mkdir /etc/ochem/cs_release && cd $HOME ; zip -9 -r /home/ochem.zip *
 
 #START Conda base
 ENV PATH="${PATH}:/opt/conda/bin"
-RUN wget --quiet https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-aarch64.sh -O /root/anaconda.sh && /bin/bash /root/anaconda.sh -b -p /opt/conda && rm /root/anaconda.sh && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
+RUN $WGET --quiet https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-aarch64.sh -O /root/anaconda.sh && /bin/bash /root/anaconda.sh -b -p /opt/conda && rm /root/anaconda.sh && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
     . /opt/conda/etc/profile.d/conda.sh && conda activate base && conda install python=$PYTHON && conda update -y -n base -c defaults conda && conda clean -y --all 
 
 ENV CUDA_HOME=/usr/local/cuda/
@@ -93,7 +95,7 @@ ARG MAVEN_VERSION=3.8.7
 ARG BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
 
 RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
- && wget -O /tmp/apache-maven.tar.gz ${BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
+ && $WGET -O /tmp/apache-maven.tar.gz ${BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
  && tar -xzf /tmp/apache-maven.tar.gz -C /usr/share/maven --strip-components=1 \
  && rm -f /tmp/apache-maven.tar.gz \
  && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
