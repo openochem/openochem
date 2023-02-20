@@ -45,7 +45,7 @@ services:
     networks:
       - ochem-demo
     command: bash deploy.sh
-    deploy:
+    #deploy:
       #resources:
         #reservations:
           #devices:

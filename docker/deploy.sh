@@ -46,6 +46,8 @@ if [ -n "$NAME" ]; then
 
 fi
 
+sleep(60) # to give sufficient time to create mysql tables during the init
+
 chmod +x env/*
 chmod +x servers/*
 cd env
