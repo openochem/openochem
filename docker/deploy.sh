@@ -3,6 +3,9 @@
 set -u
 set +e
 
+echo "Waiting for DB initialization (60s)..."
+sleep 60
+
 echo "Starting ochem on ${HOSTNAME}."
 export OCHEM_SERVER=${OCHEM_SERVER:-ochem}
 
@@ -45,8 +48,6 @@ if [ -n "$NAME" ]; then
 	done
 
 fi
-
-sleep 60
 
 chmod +x env/*
 chmod +x servers/*
