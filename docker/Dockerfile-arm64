@@ -13,7 +13,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -qq update --fix-missing && apt-get update && \
 # first install tomcat for external use
    apt-get -y --no-install-recommends  install apt-utils openjdk-8-jdk vim tar wget locate zip unzip iputils-ping python$PYTHON python3-pip git authbind wait-for-it && \
-   apt-get -y install software-properties-common screen libgomp1 && apt-get -y install cmake libopenblas-base libomp-dev && apt-get -y install ca-certificates libglib2.0-0 libxext6 libsm6 libxrender1
+   apt-get -y install software-properties-common screen libgomp1 && apt-get -y install cmake libopenblas-base libomp-dev && apt-get -y install ca-certificates libglib2.0-0 libxext6 libsm6 libxrender1 rsync
 
 ARG HOME=/etc/ochem
 ARG WGET="wget --no-check-certificate"
@@ -53,7 +53,7 @@ RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate b
 
 # NVIDIA settings
 ARG VERSION=11
-ARG CUDA=3
+ARG CUDA=7
 ARG CUPY=cupy-cuda$VERSION$CUDA
 ARG PYTORCHMAIN=1.13 # last supported version for this nvidia library 
 ARG PYTORCHMIN=1
@@ -81,11 +81,16 @@ RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate b
    conda install -y -c conda-forge pygpu && pip install --no-cache-dir mhfp && \ 
    pip install --no-cache-dir git+https://github.com/mordred-descriptor/mordred chainer line_profiler pudb gpflow && conda clean -y --all 
 
+#installation of addons and KGCNN
+RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate base &&  conda install -c conda-forge bazel==5.4.0 && pip3 install tensorflow-io && \
+    cd && git clone https://github.com/tensorflow/addons.git && cd addons && export TF_NEED_CUDA="0" && python3 ./configure.py && bazel build build_pip_pkg && bazel-bin/build_pip_pkg artifacts && pip3 install artifacts/tensorflow_addons-*.whl && cd && rm -rf addons && \
+    pip3 install kgcnn==$KGCN 
+
 RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate base && pip install --no-cache-dir h5py==3.6.0
 RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate base && pip install --no-cache-dir h5py==3.7.0
 
 # update library 
-RUN apt-get install -y libstdc++6 && add-apt-repository ppa:ubuntu-toolchain-r/test && apt-get update && apt-get -y upgrade && apt-get -y dist-upgrade
+RUN apt-get install -y libstdc++6 && apt-get update && apt-get -y upgrade && apt-get -y dist-upgrade
 
 #making executable
 RUN chmod +x /etc/source/*/* && chmod +x /etc/source/*/*/* && chmod 777 -R /etc/source && chmod 777 -R /etc/cs_servers && chmod 777 /var/run/screen && chmod +x /opt/conda/etc/profile.d/conda.sh && mkdir /ochem && updatedb && rm -rf $HOME/*
@@ -108,3 +113,4 @@ ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 ENV SCREENDIR=/tmp/.screen
 ENV OMP_NUM_THREADS=1
 ENV CUDA_DEVICE_ORDER=PCI_BUS_ID
+
