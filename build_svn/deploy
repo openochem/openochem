@@ -4,6 +4,7 @@ set -u
 set +e
 
 cd release
+rm -rf  ../../env/ochemenv/ochem.release
 zip -9 ../../env/ochemenv/ochem.release ochem.war metaserver.war *.zip
 
 cd ../..
