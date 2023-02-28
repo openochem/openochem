@@ -91,4 +91,3 @@ echo "All Done!"
 cd ${OCHEM_HOME}
 
 tail -f openochem/env/tomcat.out -f openochem/env/meta.out
-
