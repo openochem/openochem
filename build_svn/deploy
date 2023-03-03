@@ -11,4 +11,3 @@ cd ../..
 bash startHostName.sh
 
 echo "Deployment done."
-
