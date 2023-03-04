@@ -31,7 +31,7 @@ services:
     networks:
       - ochem-demo
     healthcheck:
-      test: "mariadb structures_demo -e 'select 1'"
+      test: "mariadb ready -e 'select 1'"
       interval: 1s
       retries: 300
       
