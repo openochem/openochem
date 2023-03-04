@@ -40,7 +40,7 @@ RUN cd /tmp ; git clone https://github.com/openochem/ochem-external-tools.git &&
     apt update && apt install -y r-base && /usr/bin//Rscript -e 'install.packages("randomForest",repos="http://cran.us.r-project.org")' && /usr/bin//Rscript -e 'install.packages("pls",repos="http://cran.us.r-project.org")'
 
 #Tomcats
-ARG apacheversion="9.0.71"
+ARG apacheversion="9.0.73"
 ARG TOM=9
 ARG apachetomcat="apache-tomcat-"$apacheversion
 ARG package="$HOME/ochem"
