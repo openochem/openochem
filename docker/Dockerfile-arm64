@@ -33,7 +33,7 @@ RUN cd /tmp ; git clone https://github.com/openochem/ochem-external-tools.git &&
     apt update && apt install -y r-base && /usr/bin//Rscript -e 'install.packages("pls",repos="http://cran.us.r-project.org")' && /usr/bin//Rscript -e 'install.packages("randomForest",repos="http://cran.us.r-project.org")'
 
 #Tomcats
-ARG apacheversion="9.0.71"
+ARG apacheversion="9.0.73"
 ARG TOM=9
 ARG apachetomcat="apache-tomcat-"$apacheversion
 ARG package="$HOME/ochem"
@@ -84,7 +84,7 @@ RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate b
 #installation of addons and KGCNN
 RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate base &&  conda install -c conda-forge bazel==5.4.0 && pip3 install tensorflow-io && \
     cd && git clone https://github.com/tensorflow/addons.git && cd addons && export TF_NEED_CUDA="0" && python3 ./configure.py && bazel build build_pip_pkg && bazel-bin/build_pip_pkg artifacts && pip3 install artifacts/tensorflow_addons-*.whl && cd && rm -rf addons && \
-    pip3 install kgcnn==$KGCN 
+    pip3 install kgcnn==$KGCN &&  pip install --no-cache-dir torch-scatter torch-sparse
 
 RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate base && pip install --no-cache-dir h5py==3.6.0
 RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate base && pip install --no-cache-dir h5py==3.7.0
