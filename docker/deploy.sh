@@ -3,8 +3,8 @@
 set -u
 set +e
 
-echo "Waiting for DB initialization (60s)..."
-sleep 60
+#echo "Waiting for DB initialization (60s)..."
+#sleep 60
 
 echo "Starting ochem on ${HOSTNAME}."
 export OCHEM_SERVER=${OCHEM_SERVER:-ochem}
