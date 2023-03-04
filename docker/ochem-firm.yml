@@ -30,7 +30,11 @@ services:
        - ochem-demo-data:/var/lib/mysql:rw
     networks:
       - ochem-demo
-
+    healthcheck:
+      test: "mariadb ochem_demo -e 'describe ValidationSet'"
+      interval: 1s
+      retries: 300
+      
   ochem-demo:
     hostname: localhost
     build:
@@ -54,7 +58,7 @@ services:
           #    capabilities: [ gpu ]
     depends_on:
       ochem-mariadb:
-              condition: service_started
+              condition: service_healthy
       ochem-mongo:
               condition: service_started
 
