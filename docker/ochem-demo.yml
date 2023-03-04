@@ -53,8 +53,10 @@ services:
           #    count: all
           #    capabilities: [ gpu ]
     depends_on:
-      - ochem-mariadb
-      - ochem-mongo
+      ochem-mariadb:
+              condition: service_started
+      ochem-mongo:
+              condition: service_started
 
 volumes:
    ochem-demo-data:
