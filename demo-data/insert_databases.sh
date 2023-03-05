@@ -12,5 +12,4 @@ mysql $ROOT ochem_demo < ochem_demo.sql
 mysql $ROOT ochem_demo -e "drop table flyway_schema_history"
 mysql $ROOT fragment_demo < fragment_demo.sql 
 mysql $ROOT structures_demo < structures_demo.sql 
-mysql $ROOT -e "create database ready"
 

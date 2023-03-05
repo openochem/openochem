@@ -18,7 +18,7 @@ if [ -n "$NAME" ]; then
 	sed -i -r "s|^(WEB).*|\1 = http://$NAME:7080/metaserver|" env/ochemenv/cfg/metaserver.cfg
 	sed -i -r "s|^(WEB).*|\1=http://$NAME:7080/metaserver|" servers/start.sh
 
-	for i in servers/ochem/*.xml ; do
+	for i in servers/cpu/*.xml ; do
 		[[ -f "$i" ]] || continue
 		sed -i -r "s|(metaserverURL).*|\1>http://$NAME:7080/metaserver</\1>|" "$i"
 		sed -i -r "s|(ochemURL).*|\1>http://$NAME:8080</\1>|" "$i"

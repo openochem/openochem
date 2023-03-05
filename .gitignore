@@ -26,6 +26,6 @@ source
 /env/ochemenv/ochem.release
 /env/ochemenv/ochemenv.sif
 /env/ochemenv/tmp/
-/servers/ochem/ochem.sif
-/servers/ochem/runs
+/servers/cpu/ochem.sif
+/servers/cpu/runs
 /servers/gpu/runs
