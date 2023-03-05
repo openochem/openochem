@@ -37,8 +37,4 @@ and enable  nvidia docker requirements in docker/ochem-demo.yml  and start GPU-e
           #    count: all
           #    capabilities: [ gpu ]
 
-N.B.! If you upgrade from the previous version, delete flyway_schema_history table in ochem_demo and restart the docker:
-
-docker exec ochem-mariadb mariadb ochem_demo -e "drop table flyway_schema_history"
-
-If you have a local installation of mysql, it will interfere with the docker. Stop the local mysql before running "up" command
+N.B.! If you have a local installation of mysql, it will interfere with the docker. Stop the local mysql before running "up" command.
