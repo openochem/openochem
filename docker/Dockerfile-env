@@ -17,7 +17,6 @@ RUN apt-get -qq update --fix-missing && apt-get update && \
 ARG HOME=/etc/ochem
 
 #Installing external tools from OpenOchem source repositories
-
 RUN cd /tmp ; git clone https://github.com/openochem/ochem-external-tools.git && \
 # copy to correct place
     mkdir $HOME  && cd $HOME && cp -r $SOURCE/ochem/ . && mkdir -p /etc/cs_servers && mkdir -p /etc/source && cp -r $SOURCE/* /etc/source && \
@@ -33,7 +32,7 @@ RUN cd /tmp ; git clone https://github.com/openochem/ochem-external-tools.git &&
     mkdir -p /etc/source/mold2/ && wget 'https://www.fda.gov/files/science%20&%20research/published/Mold2-Executable-File.zip' && unzip Mold2-Executable-File.zip && cp Mold2/Linux_x86-64/Mold2 /etc/source/mold2/mold2-linux && rm -rf Mold2* && \ 
 # GSFRAG
     cd /etc/source/gsfrag/source && bash make.sh && mv gsfrag ../gsfrag-linux && mv gsfragl ../gsfragl-linuxi && \
-# OpenBabel 2.4.1 required for specrophores
+# OpenBabel 2.4.1 required for spectrophores
     cd && wget https://github.com/openbabel/openbabel/archive/refs/tags/openbabel-2-4-1.tar.gz && tar -zxf openbabel-2-4-1.tar.gz && rm openbabel-2-4-1.tar.gz && cd openbabel-openbabel-2-4-1 && mkdir build && cd build/ && cmake .. && make -$JNN && make install && cd && rm -rf openbabel* && \
 # silicos-it
     cd && mkdir -p /etc/source/silicos-it && git clone https://github.com/silicos-it/strip-it.git && cd strip-it && cmake CMakeLists.txt && make && cp strip-it  /etc/source/silicos-it/strip-it-linux && cd && rm -rf strip-it && \
@@ -76,7 +75,7 @@ RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate b
 ARG VERSION=11
 ARG CUDA=7
 ARG CUPY=cupy-cuda$VERSION$CUDA
-ARG PYTORCHMAIN=1.13 
+ARG PYTORCHMAIN=1.13
 ARG PYTORCHMIN=1
 ARG TENSOR=2.11.0
 ARG KGCN=2.0.4
@@ -90,8 +89,12 @@ ARG PYTORCH=${PYTORCHMAIN}.${PYTORCHMIN}
 #FIX
 ARG SYMPY=1.8
 
+ENV CUDA_HOME=/usr/local/cuda/
+ENV PATH=/opt/conda/bin/:/usr/local/cuda/bin:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
 RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate base && pip install --no-cache-dir git+https://github.com/bp-kelley/descriptastorus && pip install --no-cache-dir texttable && \
-   conda install -y pytorch torchvision torchaudio pytorch-cuda=$CUDAPATH -c pytorch -c nvidia && \
+   conda install -y pytorch=${PYTORCHMAIN}.${PYTORCHMIN} torchvision torchaudio cudatoolkit=$CUDAPATH -c pytorch -c nvidia && \ 
    pip install --no-cache-dir torch-scatter -f https://pytorch-geometric.com/whl/torch-${PYTORCH}+${CUDTORCH}.html && pip install --no-cache-dir torch-sparse -f https://pytorch-geometric.com/whl/torch-${PYTORCH}+${CUDTORCH}.html && \
    pip install --no-cache-dir torch-cluster -f https://pytorch-geometric.com/whl/torch-${PYTORCH}+${CUDTORCH}.html && pip install --no-cache-dir torch-spline-conv -f https://pytorch-geometric.com/whl/torch-${PYTORCH}+${CUDTORCH}.html && pip install --no-cache-dir torch-geometric && pip install --no-cache-dir pytorch-lightning && \
 # scikit-learn
