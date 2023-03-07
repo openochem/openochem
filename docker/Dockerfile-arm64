@@ -13,7 +13,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -qq update --fix-missing && apt-get update && \
 # first install tomcat for external use
    apt-get -y --no-install-recommends  install apt-utils openjdk-8-jdk vim tar wget locate zip unzip iputils-ping python$PYTHON python3-pip git authbind wait-for-it && \
-   apt-get -y install software-properties-common screen libgomp1 && apt-get -y install cmake libopenblas-base libomp-dev && apt-get -y install ca-certificates libglib2.0-0 libxext6 libsm6 libxrender1
+   apt-get -y install software-properties-common screen libgomp1 && apt-get -y install cmake libopenblas-base libomp-dev && apt-get -y install ca-certificates libglib2.0-0 libxext6 libsm6 libxrender1 rsync
 
 ARG HOME=/etc/ochem
 ARG WGET="wget --no-check-certificate"
