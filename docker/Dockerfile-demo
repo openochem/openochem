@@ -11,7 +11,7 @@ RUN useradd -m ${OCHEM_USER}
 USER ${OCHEM_USER}
 WORKDIR ${OCHEM_HOME}
 
-ENV MAVEN_CONFIG "${OCHEM_USER}/.m2"
+ENV MAVEN_CONFIG="${OCHEM_USER}/.m2"
 
 RUN git clone https://github.com/openochem/openochem.git && chmod -R +x openochem && cd openochem/build/packages && ./install_testsuites.sh
 
