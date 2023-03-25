@@ -124,7 +124,7 @@ RUN apt-get install -y libstdc++6 && add-apt-repository ppa:ubuntu-toolchain-r/t
 RUN chmod +x /etc/source/*/* && chmod +x /etc/source/*/*/* && chmod 777 -R /etc/source && chmod 777 -R /etc/cs_servers && chmod 777 /var/run/screen && chmod +x /opt/conda/etc/profile.d/conda.sh && mkdir /ochem && updatedb && rm -rf $HOME/*
 
 # maven for building source
-ARG MAVEN_VERSION=3.8.7
+ARG MAVEN_VERSION=3.8.8
 ARG BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
 
 RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
