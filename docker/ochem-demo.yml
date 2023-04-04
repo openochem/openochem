@@ -31,7 +31,7 @@ services:
     networks:
       - ochem-demo
     healthcheck:
-      test:  bash -c "[ -f /var/lib/mysql/ochem_initialized ]"
+      test:  bash -c "[[ -f /var/lib/mysql/ochem_initialized && -f  /var/lib/mysql/ochem_demo/ValidationSet.ibd ]]"
       interval: 1s
       retries: 300
 
