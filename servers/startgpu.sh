@@ -17,7 +17,7 @@ if [ -z $SERVER ]; then
 else
    bash stop.sh $SERVER
    mkdir -p $DIRECTORY/tmp; mkdir -p $DIRECTORY/servers
-   wget -O $SERVERPATH/$SERVER/release.zip $WEB/update
+   wget --no-check-certificate -O $SERVERPATH/$SERVER/release.zip $WEB/update
    singularity  instance start -B $SERVERPATH/$SERVER:/etc/ochem -B $DIRECTORY/servers:/etc/cs_servers -B $DIRECTORY/tmp:/tmp --nv $SERVERPATH/$SERVER/$SERVER.sif $SERVER
    singularity exec instance://$SERVER /etc/source/ochem/bin/startservers.sh >/dev/null 2>/dev/null 
    echo "started $SERVER"

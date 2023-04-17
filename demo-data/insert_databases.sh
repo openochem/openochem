@@ -12,3 +12,4 @@ mysql $ROOT fragment_demo < fragment_demo.sql
 mysql $ROOT structures_demo < structures_demo.sql 
 mysql $ROOT --max_allowed_packet=1G ochem_demo < ochem_demo.sql 
 mysql $ROOT ochem_demo -e "drop table flyway_schema_history"
+
