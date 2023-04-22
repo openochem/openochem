@@ -31,7 +31,7 @@ RUN cd /tmp ; git clone https://github.com/openochem/ochem-external-tools.git &&
 # Mold2
     mkdir -p /etc/source/mold2/ && wget 'https://www.fda.gov/files/science%20&%20research/published/Mold2-Executable-File.zip' && unzip Mold2-Executable-File.zip && cp Mold2/Linux_x86-64/Mold2 /etc/source/mold2/mold2-linux && rm -rf Mold2* && \ 
 # GSFRAG
-    cd /etc/source/gsfrag/source && bash make.sh && mv gsfrag ../gsfrag-linux && mv gsfragl ../gsfragl-linuxi && \
+    cd /etc/source/gsfrag/source && bash make.sh && mv gsfrag ../gsfrag-linux && mv gsfragl ../gsfragl-linux && \
 # OpenBabel 2.4.1 required for spectrophores
     cd && wget https://github.com/openbabel/openbabel/archive/refs/tags/openbabel-2-4-1.tar.gz && tar -zxf openbabel-2-4-1.tar.gz && rm openbabel-2-4-1.tar.gz && cd openbabel-openbabel-2-4-1 && mkdir build && cd build/ && cmake .. && make -$JNN && make install && cd && rm -rf openbabel* && \
 # silicos-it
