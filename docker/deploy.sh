@@ -18,7 +18,7 @@ if [ -n "$NAME" ]; then
 		echo 'host should be without http:// or port - predefined ports will be used'
 		exit 1
 	fi
-        sed -i -r "s|^(ochem.root_host).*localhost|\1 = http://$NAME:8080|" env/ochemenv/cfg/ochem.cfg # visible web site, unless was manualy changed
+        sed -i -r "s|^(ochem.root_host).*localhost.*|\1 = http://$NAME:8080|" env/ochemenv/cfg/ochem.cfg # visible web site, unless was manualy changed
 fi
 
 # Getting name for remote calculations (if any)
