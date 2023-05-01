@@ -18,33 +18,23 @@ if [ -n "$NAME" ]; then
 		echo 'host should be without http:// or port - predefined ports will be used'
 		exit 1
 	fi
-	sed -i -r "s|(ochemURL).*|\1>http://$NAME:8080</\1>|" env/ochemenv/cfg/version-template.xml
-	sed -i -r "s|(mongoDbURL).*|\1>mongodb://$NAME</\1>|" env/ochemenv/cfg/version-template.xml
-	sed -i -r "s|(jdbc:mariadb://).*(/struc.*)|\1$NAME\2|" env/ochemenv/cfg/version-template.xml
-
-	sed -i -r "s|^(ochem.root_host).*|\1 = http://$NAME:8080|" env/ochemenv/cfg/ochem.cfg
-	sed -i -r "s|^(metaserver.default_url).*|\1 = http://$NAME:7080/metaserver|"  env/ochemenv/cfg/ochem.cfg
-	sed -i -r "s|^(mongodb.host).*|\1 = mongodb://ochem-mongo|" env/ochemenv/cfg/ochem.cfg
-
-	sed -i -r "s|^(mongodb.host).*|\1 = mongodb://ochem-mongo|" env/ochemenv/cfg/metaserver.cfg
-	sed -i -r "s|^(WEB).*|\1 = http://$NAME:7080/metaserver|" env/ochemenv/cfg/metaserver.cfg
-	sed -i -r "s|^(WEB).*|\1=http://$NAME:7080/metaserver|" servers/start.sh
-
-	for i in servers/cpu/*.xml ; do
-		[[ -f "$i" ]] || continue
-		sed -i -r "s|amd64|$ARCH|" "$i"
-		sed -i -r "s|(metaserverURL).*|\1>http://$NAME:7080/metaserver</\1>|" "$i"
-		sed -i -r "s|(ochemURL).*|\1>http://$NAME:8080</\1>|" "$i"
-	done
-
-	for i in servers/gpu/*.xml ; do
-		[[ -f "$i" ]] || continue
-		sed -i -r "s|amd64|$ARCH|" "$i"
-		sed -i -r "s|(metaserverURL).*|\1>http://$NAME:7080/metaserver</\1>|" "$i"
-		sed -i -r "s|(ochemURL).*|\1>http://$NAME:8080</\1>|" "$i"
-	done
-
+        sed -i -r "s|^(ochem.root_host).*localhost|\1 = http://$NAME:8080|" env/ochemenv/cfg/ochem.cfg # visible web site, unless was manualy changed
 fi
+
+# Getting name for remote calculations (if any)
+OCHEM=$(sed -n 's/ochem.root_host =*\(.*\)/\1/p' env/ochemenv/cfg/ochem.cfg) # actual web site
+OCHEM=${OCHEM//[[:blank:]]/}
+sed -i -r "s|(ochemURL).*|\1>$OCHEM</\1>|" env/ochemenv/cfg/version-template.xml # synchronize unless previously modified
+
+for i in servers/cpu/*.xml ; do
+    [[ -f "$i" ]] || continue
+    sed -i -r "s|amd64|$ARCH|" "$i"
+done
+
+for i in servers/gpu/*.xml ; do
+    [[ -f "$i" ]] || continue
+    sed -i -r "s|amd64|$ARCH|" "$i"
+done
 
 chmod +x env/*
 chmod +x servers/*
@@ -58,7 +48,7 @@ ln -sfn /etc/ochem ochemenv/tmp
 echo "Done."
 
 echo "Unpacking and starting tomcats..."
-bash /etc/source/ochem/bin/startochem.sh METAMEMORY=2048 OCHEMEMORY=4096
+bash /etc/source/ochem/bin/startochem.sh
 
 echo "Waiting for online status..."
 sleep 15
@@ -67,16 +57,17 @@ echo "Unpacking and starting servers..."
 cd ../servers
 SERVER=$OCHEM_SERVER
 SERVERPATH=`pwd`
-WEB=http://$NAME:7080/metaserver/
 
 SERVER=${SERVER//\/}
 DIRECTORY=$SERVERPATH/$SERVER/runs
 mkdir -p $DIRECTORY
 mkdir -p /etc/cs_servers
 
+META=http://localhost:7080/metaserver/ # default for local servers
+
 rm -rf $DIRECTORY
    rm -f $SERVERPATH/$SERVER/release.zip
-   wget -O /etc/ochem/release.zip $WEB/update
+   wget -O /etc/ochem/release.zip $META/update
    ln -sfn /etc/cs_servers $DIRECTORY/servers
    ln -sfn /tmp $DIRECTORY/tmp
    ln -sfn $SERVERPATH/$SERVER/* /etc/ochem

@@ -48,6 +48,9 @@ services:
       - 7080:7080
     networks:
       - ochem-demo
+    environment:
+      - METAMEMORY=1024
+      - OCHEMEMORY=2048
     command: bash deploy.sh
     #deploy:
       #resources:
