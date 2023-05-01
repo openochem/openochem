@@ -33,7 +33,7 @@ RUN cd /tmp ; git clone https://github.com/openochem/ochem-external-tools.git &&
     apt update && apt install -y r-base && /usr/bin//Rscript -e 'install.packages("pls",repos="http://cran.us.r-project.org")' && /usr/bin//Rscript -e 'install.packages("randomForest",repos="http://cran.us.r-project.org")'
 
 #Tomcats
-ARG apacheversion="9.0.73"
+ARG apacheversion="9.0.74"
 ARG TOM=9
 ARG apachetomcat="apache-tomcat-"$apacheversion
 ARG package="$HOME/ochem"
@@ -57,7 +57,7 @@ ARG CUDA=7
 ARG CUPY=cupy-cuda$VERSION$CUDA
 ARG PYTORCHMAIN=1.13
 ARG PYTORCHMIN=1
-ARG TENSOR=2.11.0
+ARG TENSOR=2.12.0
 ARG KGCN=2.0.4
 
 ARG CUDAPATH=${VERSION}.${CUDA}
@@ -94,19 +94,6 @@ RUN apt-get install -y libstdc++6 && apt-get update && apt-get -y upgrade && apt
 
 #making executable
 RUN chmod +x /etc/source/*/* && chmod +x /etc/source/*/*/* && chmod 777 -R /etc/source && chmod 777 -R /etc/cs_servers && chmod 777 /var/run/screen && chmod +x /opt/conda/etc/profile.d/conda.sh && mkdir /ochem && updatedb && rm -rf $HOME/*
-
-# maven for building source
-ARG MAVEN_VERSION=3.8.8
-ARG BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
-
-RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
- && $WGET -O /tmp/apache-maven.tar.gz ${BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
- && tar -xzf /tmp/apache-maven.tar.gz -C /usr/share/maven --strip-components=1 \
- && rm -f /tmp/apache-maven.tar.gz \
- && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
-
-ENV MAVEN_HOME /usr/share/maven
-ENV MAVEN_CONFIG "/usr/share/maven/.m2"
 
 ENV PATH=/opt/conda/bin/:/usr/local/cuda/bin:$PATH
 ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH

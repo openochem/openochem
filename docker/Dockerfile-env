@@ -37,12 +37,12 @@ RUN cd /tmp ; git clone https://github.com/openochem/ochem-external-tools.git &&
 # silicos-it
     cd && mkdir -p /etc/source/silicos-it && git clone https://github.com/silicos-it/strip-it.git && cd strip-it && cmake CMakeLists.txt && make && cp strip-it  /etc/source/silicos-it/strip-it-linux && cd && rm -rf strip-it && \
 #R latest version
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9 && add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/' && \
-    wget http://security.ubuntu.com/ubuntu/pool/main/i/icu/libicu66_66.1-2ubuntu2_amd64.deb && dpkg -i libicu66_66.1-2ubuntu2_amd64.deb && \
-    apt update && apt install -y r-base && /usr/bin//Rscript -e 'install.packages("randomForest",repos="http://cran.us.r-project.org")' && /usr/bin//Rscript -e 'install.packages("pls",repos="http://cran.us.r-project.org")'
+    apt-get install -y --no-install-recommends software-properties-common dirmngr && wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc && \
+    add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" && \
+    apt-get update && apt-get install -y r-base && /usr/bin//Rscript -e 'install.packages("randomForest",repos="http://cran.us.r-project.org")' && /usr/bin//Rscript -e 'install.packages("pls",repos="http://cran.us.r-project.org")'
 
 #Tomcats
-ARG apacheversion="9.0.73"
+ARG apacheversion="9.0.74"
 ARG TOM=9
 ARG apachetomcat="apache-tomcat-"$apacheversion
 ARG package="$HOME/ochem"
@@ -77,7 +77,7 @@ ARG CUDA=7
 ARG CUPY=cupy-cuda$VERSION$CUDA
 ARG PYTORCHMAIN=1.13
 ARG PYTORCHMIN=1
-ARG TENSOR=2.11.0
+ARG TENSOR=2.12.0
 ARG KGCN=2.0.4
 
 ARG CUDAPATH=${VERSION}.${CUDA}
@@ -105,7 +105,8 @@ RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate b
 #FIX for DIMENET, uses old sympy 1.8
   pip install --no-cache-dir h5py Pebble matplotlib keras tensorboardX pyyaml xlrd  mysql.connector opencv-python tensorflow-probability tables fire deepchem  sympy==$SYMPY && \
   conda install -y -c conda-forge pygpu && pip install --no-cache-dir 'git+https://github.com/facebookresearch/detectron2.git' && pip install --no-cache-dir mhfp && \ 
-  pip install --no-cache-dir git+https://github.com/mordred-descriptor/mordred tensorflow_addons $CUPY chainer kgcnn==$KGCN pudb line_profiler gpflow && conda install -c conda-forge -c schrodinger pymol-bundle && conda clean -y --all 
+  pip install --no-cache-dir git+https://github.com/mordred-descriptor/mordred tensorflow_addons $CUPY chainer kgcnn==$KGCN pudb line_profiler gpflow 
+RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate base && conda install -c conda-forge pymol-open-source
 
 ####create activate and use MAP4 env and using old fixed libraries
   RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && cd && git clone https://github.com/reymond-group/map4 && cd map4 && conda env create -f environment.yml && conda activate map4 && pip install --no-cache-dir git+https://github.com/reymond-group/map4 && cd && rm -rf map4 && \
@@ -124,18 +125,6 @@ RUN apt-get install -y libstdc++6 && add-apt-repository ppa:ubuntu-toolchain-r/t
 #making executable
 RUN chmod +x /etc/source/*/* && chmod +x /etc/source/*/*/* && chmod 777 -R /etc/source && chmod 777 -R /etc/cs_servers && chmod 777 /var/run/screen && chmod +x /opt/conda/etc/profile.d/conda.sh && mkdir /ochem && updatedb && rm -rf $HOME/*
 
-# maven for building source
-ARG MAVEN_VERSION=3.8.8
-ARG BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
-
-RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
- && wget -O /tmp/apache-maven.tar.gz ${BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
- && tar -xzf /tmp/apache-maven.tar.gz -C /usr/share/maven --strip-components=1 \
- && rm -f /tmp/apache-maven.tar.gz \
- && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
-
-ENV MAVEN_HOME /usr/share/maven
-ENV MAVEN_CONFIG "/usr/share/maven/.m2"
 
 ENV PATH=/opt/conda/bin/:/usr/local/cuda/bin:$PATH
 ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
