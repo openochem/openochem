@@ -95,7 +95,7 @@ RUN if [ "$DEPRECATED" = "true" ] ; then \
     add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" && \
     apt-get update && apt-get install -y r-base && /usr/bin//Rscript -e 'install.packages("randomForest",repos="http://cran.us.r-project.org")' && /usr/bin//Rscript -e 'install.packages("pls",repos="http://cran.us.r-project.org")'\
     cd /etc/source/ && rm -rf */*-aarch64 */*-darwin \
-    #; else \
+    ; else \
 # delete not used code for short version	
     cd /etc/source/ && rm -rf */*-aarch64 */*-darwin sirms-master silicos-it mopac map4 macau kpls deep chemprop imgqsar\
     ; fi
