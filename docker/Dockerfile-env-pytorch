@@ -75,7 +75,7 @@ RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate $
 # Conda forge
 RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate $OCHEMENV && conda install -c conda-forge openbabel pymol-open-source
 
-ARG DEPRECATED=true
+ARG DEPRECATED=false
 
 RUN if [ "$DEPRECATED" = "true" ] ; then \
 #create additional tools in the map4 environment -->
