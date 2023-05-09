@@ -5,7 +5,7 @@ FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu22.04
 ARG SOURCE=/tmp/ochem-external-tools/
 
 # indicate on how many CPUs it should be compiled
-ARG JNN=j6
+ARG JNN=j4
 ARG PYTHON=3.9
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -19,18 +19,24 @@ ARG HOME=/etc/ochem
 ARG WGET="wget --no-check-certificate"
 ENV GIT_SSL_NO_VERIFY=true
 
+ARG ARCH=linux
+ARG ARCH=aarch64
+
 #Installing external tools from OpenOchem source repositories
 RUN cd /tmp ; git clone https://github.com/openochem/ochem-external-tools.git && \
 # copy to correct place
     mkdir $HOME  && cd $HOME && cp -r $SOURCE/ochem/ . && mkdir -p /etc/cs_servers && mkdir -p /etc/source && cp -r $SOURCE/* /etc/source && \
 # GSFRAG
-    cd /etc/source/gsfrag/source && bash make.sh && mv gsfrag ../gsfrag-aarch64 && mv gsfragl ../gsfragl-aarch64 && \
+    cd /etc/source/gsfrag/source && bash make.sh && mv gsfrag ../gsfrag-${ARCH} && mv gsfragl ../gsfragl-${ARCH} 
 # OpenBabel 2.4.1 required for spectrophores
-    cd && $WGET https://github.com/openbabel/openbabel/archive/refs/tags/openbabel-2-4-1.tar.gz && tar -zxf openbabel-2-4-1.tar.gz && rm openbabel-2-4-1.tar.gz && cd openbabel-openbabel-2-4-1 && sed -i 's|-119|137|' src/formats/pngformat.cpp && sed -i 's|-16|240|'  src/formats/yasaraformat.cpp && mkdir build && cd build/ && cmake .. && make -$JNN && make install && cd && rm -rf openbabel* && \
+RUN  cd && $WGET https://github.com/openbabel/openbabel/archive/refs/tags/openbabel-2-4-1.tar.gz && tar -zxf openbabel-2-4-1.tar.gz && rm openbabel-2-4-1.tar.gz && cd openbabel-openbabel-2-4-1 && sed -i 's|-119|137|' src/formats/pngformat.cpp && sed -i 's|-16|240|'  src/formats/yasaraformat.cpp && mkdir build && cd build/ && cmake .. && make -$JNN && make install && cd && rm -rf openbabel* && \
+
 # silicos-it
-    cd && mkdir -p /etc/source/silicos-it && git clone https://github.com/silicos-it/strip-it.git && cd strip-it && cmake CMakeLists.txt && make && cp strip-it  /etc/source/silicos-it/strip-it-aarch64 && cd && rm -rf strip-it && \
+    cd && mkdir -p /etc/source/silicos-it && git clone https://github.com/silicos-it/strip-it.git && cd strip-it && cmake CMakeLists.txt && make && cp strip-it  /etc/source/silicos-it/strip-it-${ARCH} && cd && rm -rf strip-it && \
 #R latest version
     apt update && apt install -y r-base && /usr/bin//Rscript -e 'install.packages("pls",repos="http://cran.us.r-project.org")' && /usr/bin//Rscript -e 'install.packages("randomForest",repos="http://cran.us.r-project.org")'
+
+#ARG ARCH=x86_64
 
 #Tomcats
 ARG apacheversion="9.0.74"
@@ -42,7 +48,7 @@ RUN cd && $WGET http://archive.apache.org/dist/tomcat/tomcat-$TOM/v$apacheversio
 
 #START Conda base
 ENV PATH="${PATH}:/opt/conda/bin"
-RUN $WGET --quiet https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-aarch64.sh -O /root/anaconda.sh && /bin/bash /root/anaconda.sh -b -p /opt/conda && rm /root/anaconda.sh && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
+RUN $WGET --quiet https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-${ARCH}.sh -O /root/anaconda.sh && /bin/bash /root/anaconda.sh -b -p /opt/conda && rm /root/anaconda.sh && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
     . /opt/conda/etc/profile.d/conda.sh && conda activate base && conda install python=$PYTHON && conda update -y -n base -c defaults conda && conda clean -y --all 
 
 ENV CUDA_HOME=/usr/local/cuda/
@@ -57,7 +63,7 @@ ARG CUDA=7
 ARG CUPY=cupy-cuda$VERSION$CUDA
 ARG PYTORCHMAIN=1.13
 ARG PYTORCHMIN=1
-ARG TENSOR=2.12.0
+ARG TENSOR=2.11.0
 ARG KGCN=2.0.4
 
 ARG CUDAPATH=${VERSION}.${CUDA}
@@ -72,10 +78,10 @@ ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate base && pip install --no-cache-dir git+https://github.com/bp-kelley/descriptastorus && pip install --no-cache-dir texttable && \
    conda install -y pytorch torchvision  && pip install torch-geometric && \
 # scikit-learn
-   conda install -y scikit-learn && pip install lightgbm molvs && \
+   conda install -y scikit-learn && pip install lightgbm xgboost molvs && \
    conda install -c conda-forge openbabel && \ 
 # usually latest version; just to  use checked one 
-   pip install --no-cache-dir --upgrade tensorflow-aarch64==$TENSOR protobuf && \
+   pip install --no-cache-dir --upgrade tensorflow==$TENSOR protobuf && \
    pip install --no-cache-dir h5py Pebble matplotlib keras tensorboardX pyyaml xlrd  mysql.connector opencv-python tensorflow-probability tables fire deepchem  sympy && \
 # && pip install --no-cache-dir 'git+https://github.com/facebookresearch/detectron2.git' && conda install -c conda-forge -c schrodinger pymol-bundle &&
    conda install -y -c conda-forge pygpu && pip install --no-cache-dir mhfp && \ 
