@@ -45,7 +45,9 @@ mkdir -p /ochem/tmp/cs_release/
 cp -r ochemenv/. /ochem/
 ln -sfn /etc/ochem ochemenv/tmp
 
-echo "Done."
+echo "Awaiting for mariadb start"
+
+sleep 60
 
 echo "Unpacking and starting tomcats..."
 bash /etc/source/ochem/bin/startochem.sh
