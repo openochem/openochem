@@ -74,7 +74,7 @@ rm -rf $DIRECTORY
    ln -sfn /tmp $DIRECTORY/tmp
    ln -sfn $SERVERPATH/$SERVER/* /etc/ochem
 
-   sh /etc/source/ochem/bin/startservers.sh
+   bash /etc/source/ochem/bin/startservers.sh
    echo "started $SERVER"
 
 echo "All Done!"
