@@ -69,7 +69,7 @@ META=http://localhost:7080/metaserver/ # default for local servers
 
 rm -rf $DIRECTORY
    rm -f $SERVERPATH/$SERVER/release.zip
-   wget -O /etc/ochem/release.zip $META/update
+   wget -q -O /etc/ochem/release.zip $META/update
    ln -sfn /etc/cs_servers $DIRECTORY/servers
    ln -sfn /tmp $DIRECTORY/tmp
    ln -sfn $SERVERPATH/$SERVER/* /etc/ochem
