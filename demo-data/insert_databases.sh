@@ -6,10 +6,10 @@ gunzip *.gz
 #ROOT=-uroot -pxxxx
 ROOT=
 
-mysql $ROOT < sqlsetup.sql
-mysql $ROOT metaserver_demo < metaserver_demo.sql 
-mysql $ROOT fragment_demo < fragment_demo.sql 
-mysql $ROOT structures_demo < structures_demo.sql 
-mysql $ROOT --max_allowed_packet=1G ochem_demo < ochem_demo.sql 
-mysql $ROOT ochem_demo -e "drop table flyway_schema_history"
+mariadb $ROOT < sqlsetup.sql
+mariadb $ROOT metaserver_demo < metaserver_demo.sql 
+mariadb $ROOT fragment_demo < fragment_demo.sql 
+mariadb $ROOT structures_demo < structures_demo.sql 
+mariadb $ROOT --max_allowed_packet=1G ochem_demo < ochem_demo.sql 
+mariadb $ROOT ochem_demo -e "drop table flyway_schema_history"
 
