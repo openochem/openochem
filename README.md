@@ -8,7 +8,7 @@ OCHEM software can be used to develop QSPR and QSAR models for various biologica
 
 The open OCHEM currently supports tens methods and descriptors packages, which were developed and contributed by different providers and are distributed under the open source or respective license agreements (most of them are free of charge for academic, educational, recreational or evaluation purposes - check each respective license agreement).
 
-See [installation instructions](./INSTRUCTIONS_OCHEM) how to install and run open the OCHEM.
+See [installation instructions](./docker/README.md) how to install and run openOCHEM.
 
 We wish you a happy computing! 
 
