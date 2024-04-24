@@ -10,6 +10,11 @@ First, you need to build the environment image with all dependencies. Just run t
 docker build -t ochem-env -f docker/Dockerfile-env .
 ```
 
+To compile in China (few packages will be disabled) use:
+```bash
+docker build -t ochem-env -f docker/Dockerfile-China .
+```
+
 After build this image will contain external software and libraries so make sure that you understand their terms and conditions (see https://github.com/openochem/ochem-external-tools).
 
 ## Demo Deployment
