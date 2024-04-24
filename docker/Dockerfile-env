@@ -1,133 +1,165 @@
-FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu22.04
-#newest docker image
+FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04
+ARG PYTHON=3.11
+ARG TENSOR=2.15.0
+ARG KGCN=2.0.4
+ARG RDKIT=2023.03.3
+ARG TORCH="pip install torch torchvision torchaudio" # latest, 2.1.1
+ARG CUDA=12x # should match the version of image
+ARG MOLGRAPHS=0.5.8 # RDKIT compatibility
 
-ARG SOURCE=/tmp/ochem-external-tools/
+#FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu22.04
+##working KGCN
+#ARG PYTHON=3.10
+#ARG TENSOR=2.11.0 # KGCNN compatibility; ; 2.11.1 does not exist for aarch64
+#ARG KGCN=2.0.4
+#ARG RDKIT=2023.03.3
+#ARG TORCH="pip install torch==1.11.0 torchvision==0.12.0 torchaudio==0.11.0"
+#ARG TORCH="pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2"
+#ARG CUDA=11x # should match the version of image
+#ARG NUMPY="==1.23.5" # KGCNN
+#ARG MOLGRAPHS=0.5.7 # TF compatibility
+#ARG GPFLOW="==2.7.1" # only
+#ARG PROB="==0.19.0"
 
-# indicate on how many CPUs it should be compiled
-ARG JNN=j6
-ARG PYTHON=3.9
+#universal image for different platforms
+
+#ARG ARCH=aarch64  ### TORCH should be <= 2.0.1
+ARG ARCH=x86_64
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update --fix-missing && apt-get update && \
 # first install tomcat for external use
-   apt-get -y --no-install-recommends  install apt-utils openjdk-8-jdk vim tar wget locate zip unzip iputils-ping python$PYTHON python3-pip git authbind wait-for-it && \
-   apt-get -y install software-properties-common screen libgomp1 && apt-get -y install cmake libopenblas-base libomp-dev && apt-get -y install ca-certificates libglib2.0-0 libxext6 libsm6 libxrender1 tzdata
+   apt-get -y --no-install-recommends  install apt-utils openjdk-8-jdk vim tar wget locate zip unzip iputils-ping python$PYTHON python3-pip git authbind wait-for-it &&\
+   apt-get -y install software-properties-common screen libgomp1 && apt-get -y install cmake libopenblas-base libomp-dev &&\
+   apt-get -y install ca-certificates libglib2.0-0 libxext6 libsm6 libxrender1 rsync curl ash htop
 
 ARG HOME=/etc/ochem
+ARG SOURCE=/etc/source
+ARG WGET="wget --no-check-certificate"
+ENV GIT_SSL_NO_VERIFY=true
+ARG JNN=j8
+
+RUN /bin/ash -c 'set -ex && ARC=`uname -m` && if [ "$ARCH" != "$ARC" ]; then echo "incorrect platform: $ARCH != $ARC" && false; else true; fi'
 
 #Installing external tools from OpenOchem source repositories
+ARG GITDIR=/tmp/ochem-external-tools/
 RUN cd /tmp ; git clone https://github.com/openochem/ochem-external-tools.git && \
 # copy to correct place
-    mkdir $HOME  && cd $HOME && cp -r $SOURCE/ochem/ . && mkdir -p /etc/cs_servers && mkdir -p /etc/source && cp -r $SOURCE/* /etc/source && \
+    mkdir $HOME && cd $HOME && cp -r $GITDIR/ochem/ . && mkdir -p /etc/cs_servers && mkdir -p $SOURCE && cp -r $GITDIR/* $SOURCE && rm -rf $GITDIR &&\
+# GSFRAG
+    cd $SOURCE/gsfrag/source && bash make.sh && mv gsfrag ../gsfrag-${ARCH} && mv gsfragl ../gsfragl-${ARCH} &&\
+# OpenBabel 2.4.1 required for spectrophores
+    cd && $WGET https://github.com/openbabel/openbabel/archive/refs/tags/openbabel-2-4-1.tar.gz && tar -zxf openbabel-2-4-1.tar.gz && rm openbabel-2-4-1.tar.gz && cd openbabel-openbabel-2-4-1 && \
+	if [ "$ARCH" = "aarch64" ] ; then \
+		sed -i 's|-119|137|' src/formats/pngformat.cpp && sed -i 's|-16|240|' src/formats/yasaraformat.cpp \
+		; else true ; fi && \
+	mkdir build && cd build/ && cmake .. && make -$JNN && make install && cd && rm -rf openbabel* && \
+# silicos-it
+    cd && mkdir -p $SOURCE/silicos-it && git clone https://github.com/silicos-it/strip-it.git && cd strip-it && cmake CMakeLists.txt && make && \
+    if [ "$ARCH" = "x86_64" ] ; then \
+		cp strip-it  $SOURCE/silicos-it/strip-it-linux \
+		; else cp strip-it  $SOURCE/silicos-it/strip-it-${ARCH} ; fi && \    
+    cd && rm -rf strip-it && \
 # Fragmentor
-    mkdir -p /etc/source/fragmentor/ && wget https://web.archive.org/web/20150219162247/http://infochim.u-strasbg.fr/recherche/Download/Fragmentor/Fragmentor2014_Linux-64bit && mv Fragmentor2014_Linux-64bit /etc/source/fragmentor/isida-fragmentor-linux && \ 
+    mkdir -p $SOURCE/fragmentor/ && wget -q https://web.archive.org/web/20150219162247/http://infochim.u-strasbg.fr/recherche/Download/Fragmentor/Fragmentor2014_Linux-64bit && mv Fragmentor2014_Linux-64bit $SOURCE/fragmentor/isida-fragmentor-linux &&\
+#R latest version
+    apt update && apt install -y r-base && /usr/bin/Rscript -e 'install.packages("pls",repos="https://cran.rstudio.com/")' && /usr/bin//Rscript -e 'install.packages("randomForest",repos="https://cran.rstudio.com")' &&\
+#pymol manual installation
+	apt-get -y install git build-essential python3-dev libglew-dev libpng-dev libfreetype6-dev libxml2-dev \
+ 	libmsgpack-dev python3-pyqt5.qtopengl libglm-dev libnetcdf-dev && cd && git clone https://github.com/schrodinger/pymol-open-source.git &&\
+	git clone https://github.com/rcsb/mmtf-cpp.git && mv mmtf-cpp/include/mmtf* pymol-open-source/include/ && cd pymol-open-source && \
+	python3 setup.py build install --home=/usr/ && cd && rm -rf pymol-open-source
+
+#Tomcats
+ARG apacheversion="9.0.88"
+ARG TOM=9
+ARG apachetomcat="apache-tomcat-"$apacheversion
+ARG conf_dir="$HOME/ochem/conf"
+RUN cd && $WGET http://archive.apache.org/dist/tomcat/tomcat-$TOM/v$apacheversion/bin/$apachetomcat.zip && unzip $apachetomcat.zip && cp -r $apachetomcat "$HOME/ochem-tomcat" &&\
+	rm -rf "$HOME/ochem-tomcat/webapps/ROOT" && mv $apachetomcat "$HOME/metaserver-tomcat" && rm -rf $apachetomcat.zip && ln -sf $conf_dir/tomcat/ochem-server.xml $HOME/ochem-tomcat/conf/server.xml &&\
+	ln -sf $conf_dir/tomcat/metaserver-server.xml $HOME/metaserver-tomcat/conf/server.xml &&  mkdir /etc/ochem/cs_release && cd $HOME ; zip -9 -r /home/ochem.zip *
+
+#START Conda base
+ENV OCHEMENV=base
+ENV PATH="/usr/local/cuda/bin:/opt/conda/bin:$PATH"
+ENV CUDA_HOME=/usr/local/cuda/
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
+ARG PIP="pip install --no-cache-dir --default-timeout=10000"
+
+RUN $WGET --quiet https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-${ARCH}.sh -O /root/anaconda.sh && /bin/bash /root/anaconda.sh -b -p /opt/conda && rm /root/anaconda.sh && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
+    . /opt/conda/etc/profile.d/conda.sh && conda activate $OCHEMENV && conda install python=$PYTHON && conda update -y -n $OCHEMENV -c defaults conda &&\
+	$PIP rdkit==$RDKIT &&\
+	$PIP git+https://github.com/bp-kelley/descriptastorus && $PIP texttable && \
+	conda install -y -c conda-forge conda-libmamba-solver libarchive openbabel && \
+# scikit-learn
+	conda install -y scikit-learn && $PIP  lightgbm xgboost catboost molvs && \
+	$PIP tensorflow==$TENSOR protobuf &&\
+#manual TF addons installation (required only for arm64...)
+    if [ "$ARCH" = "aarch64" ] ; then \
+		conda install -c conda-forge bazel==6.1.0 && $PIP tensorflow-io && cd && git clone https://github.com/tensorflow/addons.git && cd addons &&\
+		export TF_NEED_CUDA="0" && python ./configure.py && bazel build build_pip_pkg && bazel-bin/build_pip_pkg artifacts && $PIP artifacts/tensorflow_addons-*.whl &&\
+		cd && rm -rf addons \
+	; else $PIP --upgrade cupy-cuda$CUDA ; fi &&\
+	$TORCH && \
+	$PIP h5py Pebble matplotlib keras tensorboardX pyyaml xlrd  mysql.connector opencv-python tables fire deepchem sympy mhfp && \
+	$PIP git+https://github.com/mordred-descriptor/mordred chainer line_profiler pudb &&\
+	$PIP kgcnn==$KGCN torch-scatter torch-sparse torch_geometric &&\
+#Fixed versions required by various codes, see explanation of the next line:
+#last line reinforce fixed releases. Otherwises
+#sympy fails DIMENET #Singleton.__init__.<locals>.<lambda>() takes 1 positional argument but 2 were given  
+#molgraph only itself #DGIN is absent since 0.6.0; therefore MolGraphs require old rdkit 2023.03.3 (probably no issues in >0.6 version)
+#scipy fails DEEPCHEM #Did you mean: 'gibrat'?
+#pandas fails OLEADA
+#numpy is for KCNN==2.0.4 
+#TENSOR should be reinstalled
+	$PIP fastcluster pybind11 numba Levenshtein \
+	sympy==1.8 scipy==1.10.1 pandas==2.0.3 molgraph==$MOLGRAPHS numpy$NUMPY tensorflow==$TENSOR gpflow$GPFLOW tensorflow-probability$PROB &&\
+	apt-get update && apt-get install -y build-essential libstdc++6 &&\
+	conda clean -y --all
+
+ARG EXTENDED=true
+
+RUN \ 
+	if [ "$EXTENDED" = "true" ] ; then \
+#MAP4 + old python3.6
+	eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && cd && git clone https://github.com/reymond-group/map4 && cd map4 &&\ 
+	conda install -y -c conda-forge conda-libmamba-solver && conda env create -f environment.yml && conda activate map4 &&\ 
+	$PIP git+https://github.com/reymond-group/map4 && cd && rm -rf map4 &&\
+#MACAU
+	cd && $PIP numpy scipy cython pandas requests && git clone https://github.com/jaak-s/macau.git &&\
+	cd macau && python3.6 setup.py install && cd; rm -rf macau &&\
+#CDDD
+	cd && $PIP tensorflow==1.14 numpy scikit-learn==0.22 pandas && git clone https://github.com/jrwnter/cddd.git && cd cddd/ && sed -i 's|-gpu==1.10.0||' setup.py && python3.6 setup.py install &&\
+	$PIP gdown && gdown 1oyknOulq_j0w9kzOKKIHdTLo5HphT99h &&\ 
+	unzip default_model.zip && mkdir -p $SOURCE/cddd && cp default_model/* $SOURCE/cddd && cd && rm -rf cddd\
+	; else true ; fi
+
+RUN \ 
+	if [ "$EXTENDED$ARCH" = "truex86_64" ] ; then \
+#Win32
+	dpkg --add-architecture i386 && apt-get update && apt-get install -y wine-stable wine32 &&\
+# KRAKENX
+	cd && git clone https://gitlab.com/vishsoft/krakenx.git && cd krakenx/build && bash build.sh && cp KrakenX.jar $SOURCE/mopac2016 && cd && rm -rf krakenx && rm -rf $SOURCE/mopac2016/mopac.txt $SOURCE/mopac2016/mols.txt &&\
+# SIGMA profiles
+	git clone https://github.com/lvpp/sigma.git && cp sigma/MOPAC/POA1.rm1 $SOURCE/mopac2016/ && rm -rf sigma &&\
+# Mold2
+	mkdir -p $SOURCE/mold2/ && wget -q 'https://www.fda.gov/files/science%20&%20research/published/Mold2-Executable-File.zip' && unzip Mold2-Executable-File.zip && cp Mold2/Linux_x86-64/Mold2 $SOURCE/mold2/mold2-linux && rm -rf Mold2* \
+	; else true ; fi
+
+#Installing external tools from OpenOchem source repositories
 # MOPAC2016
-    cd && mkdir -p /etc/source/mopac2016 && mkdir mop && cd mop && wget http://openmopac.net/MOPAC2016_for_Linux_64_bit.zip && unzip MOPAC2016_for_Linux_64_bit.zip && cp MOPAC2016.exe /etc/source/mopac2016/MOPAC2016-linux && cd && rm -rf mop && \  
+RUN cd && mkdir -p /etc/source/mopac2016 && mkdir mop && cd mop && wget http://openmopac.net/MOPAC2016_for_Linux_64_bit.zip && unzip MOPAC2016_for_Linux_64_bit.zip && cp MOPAC2016.exe /etc/source/mopac2016/MOPAC2016-linux && cd && rm -rf mop && \  
 # KRAKENX
     cd && git clone https://gitlab.com/vishsoft/krakenx.git && cd krakenx/build && bash build.sh && cp KrakenX.jar /etc/source/mopac2016 && cd && rm -rf krakenx && rm -rf /etc/source/mopac2016/mopac.txt /etc/source/mopac2016/mols.txt &&  \ 
 # SIGMA profiles
-    git clone https://github.com/lvpp/sigma.git && cp sigma/MOPAC/POA1.rm1 /etc/source/mopac2016/ && rm -rf sigma && \ 
-# Mold2
-    mkdir -p /etc/source/mold2/ && wget 'https://www.fda.gov/files/science%20&%20research/published/Mold2-Executable-File.zip' && unzip Mold2-Executable-File.zip && cp Mold2/Linux_x86-64/Mold2 /etc/source/mold2/mold2-linux && rm -rf Mold2* && \ 
-# GSFRAG
-    cd /etc/source/gsfrag/source && bash make.sh && mv gsfrag ../gsfrag-linux && mv gsfragl ../gsfragl-linux && \
-# OpenBabel 2.4.1 required for spectrophores
-    cd && wget https://github.com/openbabel/openbabel/archive/refs/tags/openbabel-2-4-1.tar.gz && tar -zxf openbabel-2-4-1.tar.gz && rm openbabel-2-4-1.tar.gz && cd openbabel-openbabel-2-4-1 && mkdir build && cd build/ && cmake .. && make -$JNN && make install && cd && rm -rf openbabel* && \
-# silicos-it
-    cd && mkdir -p /etc/source/silicos-it && git clone https://github.com/silicos-it/strip-it.git && cd strip-it && cmake CMakeLists.txt && make && cp strip-it  /etc/source/silicos-it/strip-it-linux && cd && rm -rf strip-it && \
-#R latest version
-    apt-get install -y --no-install-recommends software-properties-common dirmngr && wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc && \
-    add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" && \
-    apt-get update && apt-get install -y r-base && /usr/bin//Rscript -e 'install.packages("randomForest",repos="http://cran.us.r-project.org")' && /usr/bin//Rscript -e 'install.packages("pls",repos="http://cran.us.r-project.org")'
-
-#Tomcats
-ARG apacheversion="9.0.74"
-ARG TOM=9
-ARG apachetomcat="apache-tomcat-"$apacheversion
-ARG package="$HOME/ochem"
-ARG conf_dir="$package/conf"
-RUN cd && wget http://archive.apache.org/dist/tomcat/tomcat-$TOM/v$apacheversion/bin/$apachetomcat.zip && unzip $apachetomcat.zip && cp -r $apachetomcat "$HOME/ochem-tomcat" && rm -rf "$HOME/ochem-tomcat/webapps/ROOT" && mv $apachetomcat "$HOME/metaserver-tomcat" && rm -rf $apachetomcat.zip && ln -sf $conf_dir/tomcat/ochem-server.xml $HOME/ochem-tomcat/conf/server.xml && ln -sf $conf_dir/tomcat/metaserver-server.xml $HOME/metaserver-tomcat/conf/server.xml &&  mkdir /etc/ochem/cs_release && cd $HOME ; zip -9 -r /home/ochem.zip *
-
-#START Conda base
-ENV PATH="${PATH}:/opt/conda/bin"
-RUN wget --quiet https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /root/anaconda.sh && /bin/bash /root/anaconda.sh -b -p /opt/conda && rm /root/anaconda.sh && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
-    . /opt/conda/etc/profile.d/conda.sh && conda activate base && conda install python=$PYTHON && conda update -y -n base -c defaults conda && conda clean -y --all 
-
-##If required RDKIT installation from source code
-#ARG BOOST=1.73
-#RUN add-apt-repository ppa:mhier/libboost-latest && apt update && apt-get -y install build-essential g++ autotools-dev libicu-dev build-essential libbz2-dev libboost$BOOST-dev gfortran cmake && rm /bin/sh && ln -s /bin/bash /bin/sh && \
-#RDKit build configuration and dependencies
-#   mkdir /workspace && cd /workspace && eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate base && git clone https://github.com/rdkit/rdkit.git && conda install -y joblib matplotlib cmake cairo pillow eigen pkg-config boost-cpp=$BOOST boost=$BOOST py-boost=$BOOST && \
-#   pip install --no-cache-dir -U numpy && apt-get -y install flex bison && mkdir -p /workspace/rdkit/build && cd /workspace/rdkit/build && \
-#   cmake -DCMAKE_INSTALL_PREFIX=/workspace/rdkit/ -DPYTHON_EXECUTABLE=/opt/conda/bin/python -DRDK_USE_FLEXBISON=ON -DRDK_BUILD_PYTHON_WRAPPERS=ON -DRDK_BUILD_CPP_TESTS=ON -DTHREADS_PTHREAD_ARG=OFF -DPYTHON_LIBRARY=/opt/conda/lib -DRDK_BUILD_AVALON_SUPPORT=ON -DRDK_BUILD_CAIRO_SUPPORT=ON -DRDK_BUILD_CPP_TESTS=OFF -DRDK_BUILD_INCHI_SUPPORT=ON -DRDK_BUILD_FREESASA_SUPPORT=ON -DRDK_BUILD_YAEHMOP_SUPPORT=ON -DPy_ENABLE_SHARED=1 -DEIGEN3_INCLUDE_DIR=/opt/conda/include/eigen3 .. && \
-#   make -$JNN install && cd .. && rm -rf build && rm -rf .git && conda clean -y --all
-#ENV RDBASE=/workspace/rdkit
-#ENV PYTHONPATH=$PYTHONPATH:$RDBASE
-ENV CUDA_HOME=/usr/local/cuda/
-ENV PATH=/usr/local/cuda/bin:$PATH
-ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
-#ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH:${RDBASE}/lib
-
-RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate base && pip install rdkit
-
-# NVIDIA settings
-ARG VERSION=11
-ARG CUDA=7
-ARG CUPY=cupy-cuda$VERSION$CUDA
-ARG PYTORCHMAIN=1.13
-ARG PYTORCHMIN=1
-ARG TENSOR=2.12.0
-ARG KGCN=2.0.4
-
-ARG CUDAPATH=${VERSION}.${CUDA}
-# For pytorch
-ARG CUDTORCH=cu${VERSION}${CUDA}
-ARG PYTORCH=${PYTORCHMAIN}.${PYTORCHMIN}
-#ARG PYTORCH=${PYTORCHMAIN}.0 # enable is minor version fails
-
-#FIX
-ARG SYMPY=1.8
-
-ENV CUDA_HOME=/usr/local/cuda/
-ENV PATH=/opt/conda/bin/:/usr/local/cuda/bin:$PATH
-ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
-
-RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate base && pip install --no-cache-dir git+https://github.com/bp-kelley/descriptastorus && pip install --no-cache-dir texttable && \
-   conda install -y pytorch=${PYTORCHMAIN}.${PYTORCHMIN} torchvision torchaudio  pytorch-cuda=$CUDAPATH cudatoolkit=$CUDAPATH -c pytorch -c nvidia && \ 
-   pip install --no-cache-dir torch-scatter -f https://pytorch-geometric.com/whl/torch-${PYTORCH}+${CUDTORCH}.html && pip install --no-cache-dir torch-sparse -f https://pytorch-geometric.com/whl/torch-${PYTORCH}+${CUDTORCH}.html && \
-   pip install --no-cache-dir torch-cluster -f https://pytorch-geometric.com/whl/torch-${PYTORCH}+${CUDTORCH}.html && pip install --no-cache-dir torch-spline-conv -f https://pytorch-geometric.com/whl/torch-${PYTORCH}+${CUDTORCH}.html && pip install --no-cache-dir torch-geometric && pip install --no-cache-dir pytorch-lightning && \
-# scikit-learn
-   conda install -y scikit-learn && pip install catboost lightgbm molvs && \
-   conda install -c conda-forge openbabel && \ 
-# usually latest version; just to  use checked one 
-   pip install --no-cache-dir --upgrade tensorflow==$TENSOR protobuf && \
-#FIX for DIMENET, uses old sympy 1.8
-  pip install --no-cache-dir h5py Pebble matplotlib keras tensorboardX pyyaml xlrd  mysql.connector opencv-python tensorflow-probability tables fire deepchem  sympy==$SYMPY && \
-  conda install -y -c conda-forge pygpu && pip install --no-cache-dir 'git+https://github.com/facebookresearch/detectron2.git' && pip install --no-cache-dir mhfp && \ 
-  pip install --no-cache-dir git+https://github.com/mordred-descriptor/mordred tensorflow_addons $CUPY chainer kgcnn==$KGCN pudb line_profiler gpflow 
-RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate base && conda install -c conda-forge pymol-open-source
-
-####create activate and use MAP4 env and using old fixed libraries
-  RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && cd && git clone https://github.com/reymond-group/map4 && cd map4 && conda env create -f environment.yml && conda activate map4 && pip install --no-cache-dir git+https://github.com/reymond-group/map4 && cd && rm -rf map4 && \
-#MACAU
-  pip install --no-cache-dir numpy scipy cython pandas requests && pip install --no-cache-dir requests && git clone https://github.com/jaak-s/macau.git && cd macau && python3.6 setup.py install && cd; rm -rf macau && \
-#CDDD
-  pip install --no-cache-dir tensorflow==1.14 && pip install --no-cache-dir numpy scikit-learn==0.22 pandas && git clone https://github.com/jrwnter/cddd.git && cd cddd/ && sed -i 's|-gpu==1.10.0||' setup.py && python3.6 setup.py install && pip install --no-cache-dir gdown && gdown 1oyknOulq_j0w9kzOKKIHdTLo5HphT99h && unzip default_model.zip && mkdir -p /etc/source/cddd && cp default_model/* /etc/source/cddd && cd && rm -rf cddd && \
-  conda clean -y --all
-
-RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate base && pip install --no-cache-dir h5py==3.6.0
-RUN eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate base && pip install --no-cache-dir h5py==3.7.0
-
-# update library 
-RUN apt-get install -y libstdc++6 && add-apt-repository ppa:ubuntu-toolchain-r/test && apt-get update && apt-get -y upgrade && apt-get -y dist-upgrade
+    git clone https://github.com/lvpp/sigma.git && cp sigma/MOPAC/POA1.rm1 /etc/source/mopac2016/ && rm -rf sigma
 
 #making executable
-RUN chmod +x /etc/source/*/* && chmod +x /etc/source/*/*/* && chmod 777 -R /etc/source && chmod 777 -R /etc/cs_servers && chmod 777 /var/run/screen && chmod +x /opt/conda/etc/profile.d/conda.sh && mkdir /ochem && updatedb && rm -rf $HOME/*
+RUN chmod -R +x $SOURCE && chmod 777 -R $SOURCE && chmod 777 -R /etc/cs_servers && chmod 777 /var/run/screen && chmod +x /opt/conda/etc/profile.d/conda.sh && mkdir /ochem && updatedb && rm -rf $HOME/*
 
-
-ENV PATH=/opt/conda/bin/:/usr/local/cuda/bin:$PATH
-ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+ENV PATH="/usr/lib/jvm/java-8-openjdk-amd64/jre/bin:/usr/lib/jvm/java-8-openjdk-arm64/jre/bin:$PATH"
 ENV SCREENDIR=/tmp/.screen
-ENV OMP_NUM_THREADS=1
+ENV OMP_NUM_THREADS=4
 ENV CUDA_DEVICE_ORDER=PCI_BUS_ID
