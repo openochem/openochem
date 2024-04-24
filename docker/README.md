@@ -4,7 +4,8 @@ Installation and scripts are for the "normal" docker.
 
 Install docker, git and clone image:
 
-```git clone https://github.com/openochem/openochem.git
+```
+git clone https://github.com/openochem/openochem.git
 cd openochem
 ```
 
