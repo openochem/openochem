@@ -19,7 +19,7 @@ After build this image will contain external software and libraries so make sure
 
 ## Demo Deployment
 
-You can build and deploy a standalone demo version of ochem with `docker-compose`. To build the images, just run the following from the repository root:
+You can build and deploy a standalone demo version of ochem with `docker-compose` (on some systems `docker compose`) . To build the images, just run the following from the repository root:
 
 ```bash
 docker-compose -f docker/ochem-demo.yml build
