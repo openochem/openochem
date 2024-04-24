@@ -2,6 +2,12 @@
 
 Installation and scripts are for the "normal" docker. 
 
+Install docker, git and clone image:
+
+```git clone https://github.com/openochem/openochem.git
+cd openochem
+```
+
 ## The Environment Image
 
 First, you need to build the environment image with all dependencies. Just run the following from the root of this repository:
