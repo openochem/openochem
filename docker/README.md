@@ -38,6 +38,7 @@ If successful, you should be able to run the whole ochem ecosystem as follows:
 docker-compose -f docker/ochem-demo.yml up
 ```
 
+The OCHEM will be available at http://localhost:8080 and http://localhost:7080/metaserver
 
 N.B.! If you would like to use GPU, follow installation instructions at https://github.com/NVIDIA/nvidia-docker 
 and enable  nvidia docker requirements in docker/ochem-demo.yml  and start GPU-enabled servers (servers/gpu)
