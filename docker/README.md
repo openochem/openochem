@@ -19,7 +19,7 @@ docker build -t ochem-env -f docker/Dockerfile-env .
 
 To compile in China (few packages will be disabled) enable ARG CHINA in "docker/Dockerfile-env" and compile multiple times until it will succeed:
 
-```bash build_ochem.sh```
+```bash build_ochem_china.sh```
 
 After build this image will contain external software and libraries so make sure that you understand their terms and conditions (see https://github.com/openochem/ochem-external-tools).
 
