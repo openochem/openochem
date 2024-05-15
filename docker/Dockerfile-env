@@ -81,6 +81,9 @@ RUN $WGET --quiet https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-${
 	$PIP h5py Pebble matplotlib keras tensorboardX pyyaml xlrd  mysql.connector opencv-python tables fire deepchem sympy mhfp &&\
 	$PIP git+https://github.com/mordred-descriptor/mordred chainer line_profiler pudb &&\
 	$PIP kgcnn==$KGCN torch-scatter torch-sparse torch_geometric numpy fastcluster pybind11 numba Levenshtein &&\
+#Fix for bug https://github.com/tensorflow/tensorflow/issues/62607
+    sed -i 's|epsilon=1e-3|epsilon=1e-7|' /opt/conda/lib/python$PYTHON/site-packages/kgcnn/layers_core/norm.py &&\
+    sed -i 's|epsilon=1e-3|epsilon=1e-7|' /opt/conda/lib/python$PYTHON/site-packages/kgcnn/layers/norm.py &&\
 #Fixed versions required by various codes, see explanation on the next lines:
 #last line reinforce fixed releases. Otherwises
 #scipy fails DEEPCHEM #Did you mean: 'gibrat'?
