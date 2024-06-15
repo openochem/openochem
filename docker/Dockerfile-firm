@@ -14,9 +14,9 @@ USER root
 
 RUN git clone https://github.com/openochem/openochem.git && chmod -R +x openochem 
 
-COPY ./docker/cfg ${OCHEM_HOME}/openochem/env/ochemenv/cfg
 COPY ./docker/deploy.sh ${OCHEM_HOME}/deploy.sh
 
+COPY ./firm/cfg ${OCHEM_HOME}/openochem/env/ochemenv/cfg
 COPY ./firm/ochem.release /ochem/
 COPY ./firm/source /etc/source
 RUN  apt-get update && apt-get install -y build-essential libstdc++6 && cd /etc/source/smilesxy && python setup.py install && updatedb

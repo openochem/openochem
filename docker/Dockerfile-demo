@@ -30,7 +30,7 @@ RUN cd ${OCHEM_HOME}/openochem/build && ./build_ochem ${OCHEM_BUILD_ARGS} && ./b
 
 USER root
 
-COPY ./docker/cfg ${OCHEM_HOME}/openochem/env/ochemenv/cfg
 COPY ./docker/deploy.sh ${OCHEM_HOME}/deploy.sh
 
+COPY ./docker/cfg ${OCHEM_HOME}/openochem/env/ochemenv/cfg
 RUN  mv ${OCHEM_HOME}/openochem/env/ochemenv/ochem.release /ochem/
