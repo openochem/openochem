@@ -46,12 +46,13 @@ RUN cd /tmp ; git clone https://github.com/openochem/ochem-external-tools.git &&
 	python3 setup.py build install --home=/usr/ && cd && rm -rf pymol-open-source
 
 #Tomcats
-ARG apacheversion="9.0.90"
-ARG apachetomcat="tomcat-"$apacheversion
+ARG apacheversion="9.0.89"
+ARG TOM=9
+ARG apachetomcat="apache-tomcat-"$apacheversion
 ARG conf_dir="$HOME/ochem/conf"
-RUN cd && $WGET https://github.com/apache/tomcat/archive/refs/tags/$apacheversion.zip && unzip $apacheversion.zip &&\
+RUN cd && $WGET https://archive.apache.org/dist/tomcat/tomcat-$TOM/v$apacheversion/bin/$apachetomcat.zip && unzip $apachetomcat.zip &&\
     cp -r $apachetomcat "$HOME/ochem-tomcat" && rm -rf "$HOME/ochem-tomcat/webapps/ROOT" && mv $apachetomcat "$HOME/metaserver-tomcat" &&\
-    rm -rf $apacheversion.zip && ln -sf $conf_dir/tomcat/ochem-server.xml $HOME/ochem-tomcat/conf/server.xml &&\
+    rm -rf $apachetomcat.zip && ln -sf $conf_dir/tomcat/ochem-server.xml $HOME/ochem-tomcat/conf/server.xml &&\
 	ln -sf $conf_dir/tomcat/metaserver-server.xml $HOME/metaserver-tomcat/conf/server.xml &&  mkdir /etc/ochem/cs_release && cd $HOME &&\
 	zip -9 -r /home/ochem.zip *
 
