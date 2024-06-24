@@ -46,7 +46,7 @@ RUN cd /tmp ; git clone https://github.com/openochem/ochem-external-tools.git &&
 	python3 setup.py build install --home=/usr/ && cd && rm -rf pymol-open-source
 
 #Tomcats
-ARG apacheversion="9.0.89"
+ARG apacheversion="9.0.90"
 ARG TOM=9
 ARG apachetomcat="apache-tomcat-"$apacheversion
 ARG conf_dir="$HOME/ochem/conf"
