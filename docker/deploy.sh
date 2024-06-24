@@ -22,7 +22,7 @@ if [ -n "$NAME" ]; then
 fi
 
 # Getting name for remote calculations (if any)
-OCHEM=$(sed -n 's/ochem.root_host =*\(.*\)/\1/p' env/ochemenv/cfg/ochem.cfg) # actual web site
+OCHEM=$(sed -n 's/^ochem.root_host =*\(.*\)/\1/p' env/ochemenv/cfg/ochem.cfg) # actual web site
 OCHEM=${OCHEM//[[:blank:]]/}
 sed -i -r "s|(ochemURL).*|\1>$OCHEM</\1>|" env/ochemenv/cfg/version-template.xml # synchronize unless previously modified
 
