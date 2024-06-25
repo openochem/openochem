@@ -89,7 +89,9 @@ RUN $WGET --quiet https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-${
 #scipy fails DEEPCHEM #Did you mean: 'gibrat'?
 #pandas fails OLEADA
 #TENSOR should be reinstalled
+#errors in many DNN packages without reinstalling numpy
 	$PIP sympy$SYMPY molgraph$MOLGRAPHS numpy$NUMPY tensorflow==$TENSOR gpflow$GPFLOW tensorflow-probability$PROB scipy==1.10.1 pandas==2.0.3  &&\
+	$PIP install numpy==1.26.4 --force &&\
 	conda clean -y --all
 
 ARG EXTENDED=true
