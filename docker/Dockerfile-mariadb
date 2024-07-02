@@ -1,6 +1,6 @@
 FROM mariadb:latest
 
-ENV OCHEM_ROOT /ochem
+ENV OCHEM_ROOT=/ochem
 
 RUN mkdir ${OCHEM_ROOT}
 
