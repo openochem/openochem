@@ -1,4 +1,4 @@
-# Building and Running to reproduce solubility models
+# Building and Running Docker to reproduce solubility models
 
 Installation and scripts are for the "normal" docker. 
 
@@ -14,7 +14,7 @@ cd openochem
 ```
 wget https://files.ochem.eu/solub.tar.gz
 tar -zxf solub.tar.gz; rm solub.tar.gz
-mv *.sql ../demo-data 
+mv *.sql demo-data 
 ```
 
 ## The Environment Image
