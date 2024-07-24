@@ -44,8 +44,6 @@ RUN \
     mkdir -p $SOURCE/fragmentor/ && wget -q https://web.archive.org/web/20150219162247/http://infochim.u-strasbg.fr/recherche/Download/Fragmentor/Fragmentor2014_Linux-64bit && mv Fragmentor2014_Linux-64bit $SOURCE/fragmentor/isida-fragmentor-linux &&\
 # MOPAC2016
     cd && mkdir -p $SOURCE/mopac2016 && mkdir mop && cd mop && wget -q http://openmopac.net/MOPAC2016_for_Linux_64_bit.zip && unzip MOPAC2016_for_Linux_64_bit.zip && cp MOPAC2016.exe $SOURCE/mopac2016/MOPAC2016-linux && cd && rm -rf mop &&\
-# KRAKENX
-    cd && git clone https://gitlab.com/vishsoft/krakenx.git && cd krakenx/build && bash build.sh && cp KrakenX.jar $SOURCE/mopac2016 && cd && rm -rf krakenx && rm -rf $SOURCE/mopac2016/mopac.txt $SOURCE/mopac2016/mols.txt &&\
 # SIGMA profiles
     git clone https://github.com/lvpp/sigma.git && cp sigma/MOPAC/POA1.rm1 $SOURCE/mopac2016/ && rm -rf sigma &&\
 # Mold2
@@ -53,7 +51,10 @@ RUN \
 # LibSVM
     git clone https://github.com/cjlin1/libsvm.git && cd libsvm && make && cp svm-train $SOURCE/libsvm/svm-train-linux && cp svm-predict $SOURCE/libsvm/svm-predict-linux && cd .. && rm -rf libsvm &&\
 # GSFRAG
-    cd $SOURCE/gsfrag/source && bash make.sh && mv gsfrag ../gsfrag-linux && mv gsfragl ../gsfragl-linux
+    cd $SOURCE/gsfrag/source && bash make.sh && mv gsfrag ../gsfrag-linux && mv gsfragl ../gsfragl-linux &&\
+    apt-get install -y --no-install-recommends software-properties-common dirmngr && wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc &&\
+    add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" && \
+    apt-get update && apt-get install -y r-base && /usr/bin//Rscript -e 'install.packages("randomForest",repos="http://cran.us.r-project.org")' && /usr/bin//Rscript -e 'install.packages("pls",repos="http://cran.us.r-project.org")'
 
 #Tomcats
 RUN \ 
@@ -66,7 +67,7 @@ eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate $OCHE
      conda update -n $OCHEMENV -c defaults conda &&\
      conda env update -f /root/ochem-conda.yml
      #conda install -n base --override-channels -c conda-forge mamba 'python_abi=*=*cp*' && mamba env update -f /root/ochem-conda.yml
-    
+
 RUN  cd $SOURCE/ && rm -rf */*-aarch64 */*-darwin
 
 RUN apt-get -y autoremove && apt-get -y clean
