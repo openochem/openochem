@@ -8,6 +8,22 @@ COPY ./demo-data/ ${OCHEM_ROOT}/demo-data
 
 COPY ./docker/db_entrypoint.sh /usr/local/bin/db_entrypoint.sh
 
+#To add Xemistry https://www.xemistry.com/ support of similarity search, 
+# 1) Check that you are eligible for Academic version at https://www.xemistry.com/academic/
+# 2) Enable XEMISTRY (set true) below
+
+ARG XEMISTRY=false
+
+RUN\
+	if [ "$XEMISTRY" = "true" ] ; then\
+	apt-get update && apt-get install -y libfontconfig1 fontconfig libfontconfig1-dev wget tar git &&\
+	wget https://www.xemistry.com/academic/cactvstools-Linux5.3-SuSELeap15.3-64-3.4.8.23.tar.gz &&\
+	tar -zxvf cactvstools-Linux5.3-SuSELeap15.3-64-3.4.8.23.tar.gz lib/mysql_udfcactvsmodule.so &&\
+	mv lib/mysql_udfcactvsmodule.so /usr/lib/mysql/plugin &&\
+	rm -rf cactvstools-Linux5.3-SuSELeap15.3-64-3.4.8.23.tar.gz &&\
+	git clone https://github.com/openochem/ochem-external-tools.git && cp ochem-external-tools/xemistry/xemistry_init.sql ${OCHEM_ROOT}/demo-data && rm -rf ochem-external-tools \
+	; else true ; fi
+
 WORKDIR ${OCHEM_ROOT}/demo-data/
 
 ENTRYPOINT ["db_entrypoint.sh"]
