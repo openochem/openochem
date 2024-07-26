@@ -10,6 +10,8 @@ ARG PYTORCHMIN=1
 ARG TENSOR=2.11.1
 ARG KGCN=2.0.4
 
+# image is only for AMD/Intell computers
+
 # Local files
 ARG LOCAL=ochem
 ARG FIXED=false
