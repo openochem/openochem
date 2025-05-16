@@ -1,15 +1,12 @@
 FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04
 ARG PYTHON=3.11
-ARG TENSOR=2.15.0
-ARG KGCN=3.1
-ARG CUDA=12x # should match the version of image
-ARG PROB="==0.23" #TF 2.15.0 is compatibille with 0.23
+ARG KGCNN=3.1
 #Enable to use proxy in China, it will also disable some code below
+ARG CHINA="" 
 #ARG CHINA="-i https://pypi.tuna.tsinghua.edu.cn/simple" 
 ARG PIP="pip install $CHINA --no-cache-dir --default-timeout=10000"
-ARG TORCH="$PIP torch torchvision torchaudio" # latest version
 
-#universal image for AMD and ARM platforms
+#universal image for AMD and ARM platforms; select correct one
 
 #ARG ARCH=aarch64
 ARG ARCH=x86_64
@@ -21,13 +18,13 @@ RUN apt-get -qq update --fix-missing && apt-get update &&\
    apt-get -y install software-properties-common screen libgomp1 && apt-get -y install cmake libopenblas-base libomp-dev &&\
    apt-get -y install ca-certificates libglib2.0-0 libxext6 libsm6 libxrender1 rsync curl ash htop
 
+RUN /bin/ash -c 'set -ex && ARC=`uname -m` && if [ "$ARCH" != "$ARC" ]; then echo "incorrect platform: $ARCH != $ARC" && false; else true; fi'
+
 ARG HOME=/etc/ochem
 ARG SOURCE=/etc/source
 ARG WGET="wget --no-check-certificate -q"
 ENV GIT_SSL_NO_VERIFY=true
 ARG JNN=j8
-
-RUN /bin/ash -c 'set -ex && ARC=`uname -m` && if [ "$ARCH" != "$ARC" ]; then echo "incorrect platform: $ARCH != $ARC" && false; else true; fi'
 
 #Installing external tools from OpenOchem source repositories
 ARG GITDIR=/tmp/ochem-external-tools/
@@ -38,15 +35,10 @@ RUN cd /tmp ; git clone https://github.com/openochem/ochem-external-tools.git &&
     cd $SOURCE/gsfrag/source && bash make.sh && mv gsfrag ../gsfrag-${ARCH} && mv gsfragl ../gsfragl-${ARCH} &&\
 #R latest version
     apt update && apt install -y r-base && /usr/bin/Rscript -e 'install.packages("pls",repos="https://cran.rstudio.com/")' &&\
-    /usr/bin//Rscript -e 'install.packages("randomForest",repos="https://cran.rstudio.com")' &&\
-#pymol manual installation
-	apt-get -y install git build-essential python3-dev libglew-dev libpng-dev libfreetype6-dev libxml2-dev\
- 	libmsgpack-dev python3-pyqt5.qtopengl libglm-dev libnetcdf-dev && cd && git clone https://github.com/schrodinger/pymol-open-source.git &&\
-	git clone https://github.com/rcsb/mmtf-cpp.git && mv mmtf-cpp/include/mmtf* pymol-open-source/include/ && cd pymol-open-source &&\
-	python3 setup.py build install --home=/usr/ && cd && rm -rf pymol-open-source
+    /usr/bin//Rscript -e 'install.packages("randomForest",repos="https://cran.rstudio.com")' 
 
 #Tomcats
-ARG apacheversion="9.0.91"
+ARG apacheversion="9.0.105"
 ARG TOM=9
 ARG apachetomcat="apache-tomcat-"$apacheversion
 ARG conf_dir="$HOME/ochem/conf"
@@ -56,44 +48,28 @@ RUN cd && $WGET https://archive.apache.org/dist/tomcat/tomcat-$TOM/v$apacheversi
 	ln -sf $conf_dir/tomcat/metaserver-server.xml $HOME/metaserver-tomcat/conf/server.xml &&  mkdir /etc/ochem/cs_release && cd $HOME &&\
 	zip -9 -r /home/ochem.zip *
 
+ENV OCHEMENV=base
+RUN $WGET --quiet https://repo.continuum.io/miniconda/Miniconda3-py311_24.9.2-0-Linux-${ARCH}.sh -O /root/anaconda.sh &&\
+	/bin/bash /root/anaconda.sh -b -p /opt/conda && rm /root/anaconda.sh && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh &&\
+    . /opt/conda/etc/profile.d/conda.sh && conda activate $OCHEMENV && conda install python=$PYTHON && conda update -y -n $OCHEMENV -c defaults conda 
+
 #START Conda base
 ENV OCHEMENV=base
 ENV PATH="/usr/local/cuda/bin:/opt/conda/bin:$PATH"
 ENV CUDA_HOME=/usr/local/cuda/
 ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 
-RUN $WGET --quiet https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-${ARCH}.sh -O /root/anaconda.sh &&\
-	/bin/bash /root/anaconda.sh -b -p /opt/conda && rm /root/anaconda.sh && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh &&\
-    . /opt/conda/etc/profile.d/conda.sh && conda activate $OCHEMENV && conda install python=$PYTHON && conda update -y -n $OCHEMENV -c defaults conda &&\
-	$PIP rdkit$RDKIT &&\
-	$PIP git+https://github.com/bp-kelley/descriptastorus && $PIP texttable &&\
-	conda install -y -c conda-forge conda-libmamba-solver libarchive openbabel &&\
-# scikit-learn
-	conda install -y scikit-learn && $PIP  lightgbm xgboost catboost molvs &&\
-	$PIP tensorflow==$TENSOR protobuf &&\
-#manual TF addons installation (required only for arm64...)
-    if [ "$ARCH" = "aarch64" ] ; then\
-		conda install -c conda-forge bazel==6.1.0 && $PIP tensorflow-io && cd && git clone https://github.com/tensorflow/addons.git && cd addons &&\
-		export TF_NEED_CUDA="0" && python ./configure.py && bazel build build_pip_pkg && bazel-bin/build_pip_pkg artifacts &&\
-		$PIP artifacts/tensorflow_addons-*.whl && cd && rm -rf addons\
-	; else $PIP --upgrade cupy-cuda$CUDA ; fi &&\
-	$TORCH &&\
-	$PIP h5py Pebble matplotlib keras tensorboardX pyyaml xlrd  mysql.connector opencv-python tables fire deepchem sympy mhfp &&\
-	$PIP git+https://github.com/mordred-descriptor/mordred chainer line_profiler pudb &&\
-	$PIP kgcnn==$KGCN torch-scatter torch-sparse torch_geometric numpy fastcluster pybind11 numba Levenshtein &&\
-#Fix for bug https://github.com/tensorflow/tensorflow/issues/62607
-    sed -i 's|epsilon=1e-3|epsilon=1e-7|' /opt/conda/lib/python$PYTHON/site-packages/kgcnn/layers_core/norm.py &&\
-    sed -i 's|epsilon=1e-3|epsilon=1e-7|' /opt/conda/lib/python$PYTHON/site-packages/kgcnn/layers/norm.py &&\
-#Fixed versions required by various codes, see explanation on the next lines:
-#last line reinforce fixed releases. Otherwises
-#scipy fails DEEPCHEM #Did you mean: 'gibrat'?
-#pandas fails OLEADA
-#TENSOR should be reinstalled
-#errors in many DNN packages without reinstalling numpy
-	$PIP sympy$SYMPY molgraph$MOLGRAPHS numpy$NUMPY tensorflow==$TENSOR gpflow$GPFLOW tensorflow-probability$PROB scipy==1.10.1 pandas==2.0.3  &&\
-#some magic with reinstalling numpy...
-	$PIP install numpy==2.0.0  && $PIP install numpy==1.26.4  &&\ 
-	conda clean -y --all
+COPY docker/conda-${ARCH}.yml /root/ochem-conda.yml
+
+RUN \ 
+eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate $OCHEMENV &&\
+     conda env update -f /root/ochem-conda.yml && $PIP cddd-onnx torch_geometric torch_scatter && $PIP --no-deps kgcnn==$KGCNN
+
+#pymol manual installation
+RUN	apt-get -y install git build-essential python3-dev libglew-dev libpng-dev libfreetype6-dev libxml2-dev\
+ 	libmsgpack-dev python3-pyqt5.qtopengl libglm-dev libnetcdf-dev && cd && git clone https://github.com/schrodinger/pymol-open-source.git &&\
+	git clone https://github.com/rcsb/mmtf-cpp.git && mv mmtf-cpp/include/mmtf* pymol-open-source/include/ && cd pymol-open-source &&\
+	python3 setup.py build install --home=/opt/conda/ && cd && rm -rf pymol-open-source
 
 ARG EXTENDED=true
 
@@ -153,7 +129,7 @@ RUN\
 #making executable
 RUN chmod -R +x $SOURCE && chmod 777 -R $SOURCE && chmod 777 -R /etc/cs_servers && chmod 777 /var/run/screen && chmod +x /opt/conda/etc/profile.d/conda.sh && mkdir /ochem && updatedb && rm -rf $HOME/*
 
-ARG VERSION_OCHEM="4.3.105" # version compatible with this image
+ARG VERSION_OCHEM="4.3.173" # version compatible with this image
 
 ENV PATH="/usr/lib/jvm/java-8-openjdk-amd64/jre/bin:/usr/lib/jvm/java-8-openjdk-arm64/jre/bin:$PATH"
 ENV SCREENDIR=/tmp/.screen
