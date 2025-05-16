@@ -49,12 +49,11 @@ RUN cd && $WGET https://archive.apache.org/dist/tomcat/tomcat-$TOM/v$apacheversi
 	zip -9 -r /home/ochem.zip *
 
 ENV OCHEMENV=base
-RUN $WGET --quiet https://repo.continuum.io/miniconda/Miniconda3-py311_24.9.2-0-Linux-${ARCH}.sh -O /root/anaconda.sh &&\
+RUN $WGET https://repo.continuum.io/miniconda/Miniconda3-py311_24.9.2-0-Linux-${ARCH}.sh -O /root/anaconda.sh &&\
 	/bin/bash /root/anaconda.sh -b -p /opt/conda && rm /root/anaconda.sh && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh &&\
     . /opt/conda/etc/profile.d/conda.sh && conda activate $OCHEMENV && conda install python=$PYTHON && conda update -y -n $OCHEMENV -c defaults conda 
 
 #START Conda base
-ENV OCHEMENV=base
 ENV PATH="/usr/local/cuda/bin:/opt/conda/bin:$PATH"
 ENV CUDA_HOME=/usr/local/cuda/
 ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
@@ -115,15 +114,7 @@ RUN\
     cd && rm -rf strip-it &&\
 #KRAKENX
     cd && git clone https://gitlab.com/vishsoft/krakenx.git && cd krakenx/build && bash build.sh && cp KrakenX.jar /etc/source/mopac2016 &&\
-    cd && rm -rf krakenx && rm -rf /etc/source/mopac2016/mopac.txt /etc/source/mopac2016/mols.txt &&\
-#CDDD
-	if [ "$ARCH" = "x86_64" ] ; then\
-		eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate map4 &&\
-		cd && $PIP tensorflow==1.14 numpy scikit-learn==0.22 pandas && git clone https://github.com/jrwnter/cddd.git && cd cddd/ && sed -i 's|-gpu==1.10.0||' setup.py && python3.6 setup.py install &&\
-		#downloading pre-calculated model from Google drive
-		$PIP gdown && gdown 1oyknOulq_j0w9kzOKKIHdTLo5HphT99h &&\
-		unzip default_model.zip && mkdir -p $SOURCE/cddd && cp default_model/* $SOURCE/cddd && cd && rm -rf cddd && conda clean -y --all\
-		; else true ; fi\
+    cd && rm -rf krakenx && rm -rf /etc/source/mopac2016/mopac.txt /etc/source/mopac2016/mols.txt \
 	; else true ; fi
 
 #making executable
