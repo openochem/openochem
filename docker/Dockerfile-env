@@ -16,7 +16,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -qq update --fix-missing && apt-get update &&\
    apt-get -y --no-install-recommends  install apt-utils openjdk-8-jdk openjdk-11-jdk vim tar wget locate zip unzip iputils-ping python$PYTHON python3-pip git authbind wait-for-it &&\
    apt-get -y install software-properties-common screen libgomp1 && apt-get -y install cmake libopenblas-base libomp-dev &&\
-   apt-get -y install ca-certificates libglib2.0-0 libxext6 libsm6 libxrender1 rsync curl ash htop
+   apt-get -y install ca-certificates libglib2.0-0 libxext6 libsm6 libxrender1 rsync curl ash htop pymol
 
 RUN /bin/ash -c 'set -ex && ARC=`uname -m` && if [ "$ARCH" != "$ARC" ]; then echo "incorrect platform: $ARCH != $ARC" && false; else true; fi'
 
@@ -64,27 +64,14 @@ RUN \
 eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate $OCHEMENV &&\
      conda env update -f /root/ochem-conda.yml && $PIP cddd-onnx torch_geometric torch_scatter && $PIP --no-deps kgcnn==$KGCNN
 
-#pymol manual installation
-RUN	apt-get -y install git build-essential python3-dev libglew-dev libpng-dev libfreetype6-dev libxml2-dev\
- 	libmsgpack-dev python3-pyqt5.qtopengl libglm-dev libnetcdf-dev && cd && git clone https://github.com/schrodinger/pymol-open-source.git &&\
-	git clone https://github.com/rcsb/mmtf-cpp.git && mv mmtf-cpp/include/mmtf* pymol-open-source/include/ && cd pymol-open-source &&\
-	python3 setup.py build install --home=/opt/conda/ && cd && rm -rf pymol-open-source
-
 ARG EXTENDED=true
+
+COPY docker/lib64 /
 
 RUN\
 	if [ "$EXTENDED$ARCH" = "truex86_64" ] ; then\
 #Win32
 	dpkg --add-architecture i386 && apt-get update && apt-get install -y wine-stable wine32 &&\
-#Installing external tools from OpenOchem source repositories
-# Mold2
-	mkdir -p $SOURCE/mold2/ &&  $WGET 'https://www.fda.gov/files/science%20&%20research/published/Mold2-Executable-File.zip' &&\
-	unzip Mold2-Executable-File.zip && cp Mold2/Linux_x86-64/Mold2 $SOURCE/mold2/mold2-linux && rm -rf Mold2* &&\
-# MOPAC2016
-	cd && mkdir -p /etc/source/mopac2016 && mkdir mop && cd mop &&  $WGET http://openmopac.net/MOPAC2016_for_Linux_64_bit.zip &&\
-	unzip MOPAC2016_for_Linux_64_bit.zip && cp MOPAC2016.exe /etc/source/mopac2016/MOPAC2016-linux && cd && rm -rf mop &&\
-#SIGMA profiles
-    git clone https://github.com/lvpp/sigma.git && cp sigma/MOPAC/POA1.rm1 /etc/source/mopac2016/ && rm -rf sigma &&\
 #MAP4 + old python3.6
 	eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && cd && git clone https://github.com/reymond-group/map4 && cd map4 &&\
 	conda install -y -c conda-forge conda-libmamba-solver && conda env create -f environment.yml && conda activate map4 &&\
@@ -93,6 +80,17 @@ RUN\
 	cd && $PIP numpy scipy cython pandas requests && git clone https://github.com/jaak-s/macau.git &&\
 	cd macau && python3.6 setup.py install && cd; rm -rf macau\
 	; else true ; fi
+	
+	
+#Installing external tools from OpenOchem source repositories
+# Mold2
+RUN mkdir -p $SOURCE/mold2/ &&  $WGET 'https://www.fda.gov/files/science%20&%20research/published/Mold2-Executable-File.zip' &&\
+	unzip Mold2-Executable-File.zip && cp Mold2/Linux_x86-64/Mold2 $SOURCE/mold2/mold2-linux && rm -rf Mold2* &&\
+# MOPAC2016
+	cd && mkdir -p /etc/source/mopac2016 && mkdir mop && cd mop &&  $WGET http://openmopac.net/MOPAC2016_for_Linux_64_bit.zip &&\
+	unzip MOPAC2016_for_Linux_64_bit.zip && cp MOPAC2016.exe /etc/source/mopac2016/MOPAC2016-linux && cd && rm -rf mop &&\
+#SIGMA profiles
+    git clone https://github.com/lvpp/sigma.git && cp sigma/MOPAC/POA1.rm1 /etc/source/mopac2016/ && rm -rf sigma
 	
 ### For China code below does not install yet; can be still debugged to make it working
 RUN\
