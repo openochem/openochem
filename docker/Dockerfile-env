@@ -1,5 +1,5 @@
 FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04
-ARG PYTHON=3.11
+ARG PYTHON=3.10
 ARG KGCNN=3.1
 #Enable to use proxy in China, it will also disable some code below
 ARG CHINA="" 
@@ -8,15 +8,18 @@ ARG PIP="pip install $CHINA --no-cache-dir --default-timeout=10000"
 
 #universal image for AMD and ARM platforms; select correct one
 
-#ARG ARCH=aarch64
 ARG ARCH=x86_64
+## If you use aarch64, uncomment two lines below 
+#ARG ARCH=aarch64
+#COPY docker/lib64 /
+
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update --fix-missing && apt-get update &&\
    apt-get -y --no-install-recommends  install apt-utils openjdk-8-jdk openjdk-11-jdk vim tar wget locate zip unzip iputils-ping python$PYTHON python3-pip git authbind wait-for-it &&\
    apt-get -y install software-properties-common screen libgomp1 && apt-get -y install cmake libopenblas-base libomp-dev &&\
-   apt-get -y install ca-certificates libglib2.0-0 libxext6 libsm6 libxrender1 rsync curl ash htop pymol
+   apt-get -y install ca-certificates libglib2.0-0 libxext6 libsm6 libxrender1 rsync curl ash htop
 
 RUN /bin/ash -c 'set -ex && ARC=`uname -m` && if [ "$ARCH" != "$ARC" ]; then echo "incorrect platform: $ARCH != $ARC" && false; else true; fi'
 
@@ -51,7 +54,8 @@ RUN cd && $WGET https://archive.apache.org/dist/tomcat/tomcat-$TOM/v$apacheversi
 ENV OCHEMENV=base
 RUN $WGET https://repo.continuum.io/miniconda/Miniconda3-py311_24.9.2-0-Linux-${ARCH}.sh -O /root/anaconda.sh &&\
 	/bin/bash /root/anaconda.sh -b -p /opt/conda && rm /root/anaconda.sh && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh &&\
-    . /opt/conda/etc/profile.d/conda.sh && conda activate $OCHEMENV && conda install python=$PYTHON && conda update -y -n $OCHEMENV -c defaults conda 
+    . /opt/conda/etc/profile.d/conda.sh && conda activate $OCHEMENV 
+#&& conda install python=$PYTHON
 
 #START Conda base
 ENV PATH="/usr/local/cuda/bin:/opt/conda/bin:$PATH"
@@ -62,11 +66,11 @@ COPY docker/conda-${ARCH}.yml /root/ochem-conda.yml
 
 RUN \ 
 eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate $OCHEMENV &&\
-     conda env update -f /root/ochem-conda.yml && $PIP cddd-onnx torch_geometric torch_scatter && $PIP --no-deps kgcnn==$KGCNN
+     conda env update -f /root/ochem-conda.yml && $PIP cddd-onnx torch_geometric torch_scatter torchvision && $PIP --no-deps kgcnn==$KGCNN &&\
+     conda create -n pymol-opensource && conda activate pymol-opensource && conda install -y -c conda-forge pymol-open-source &&\
+     conda install -y -c anaconda numpy && ln -s /opt/conda/envs/pymol-opensource/bin/pymol /usr/bin/pymol
 
 ARG EXTENDED=true
-
-COPY docker/lib64 /
 
 RUN\
 	if [ "$EXTENDED$ARCH" = "truex86_64" ] ; then\
