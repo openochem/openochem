@@ -52,8 +52,8 @@ RUN cd && $WGET https://archive.apache.org/dist/tomcat/tomcat-$TOM/v$apacheversi
 	zip -9 -r /home/ochem.zip *
 
 ENV OCHEMENV=base
-RUN $WGET https://repo.continuum.io/miniconda/Miniconda3-py311_24.9.2-0-Linux-${ARCH}.sh -O /root/anaconda.sh &&\
-	/bin/bash /root/anaconda.sh -b -p /opt/conda && rm /root/anaconda.sh && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh &&\
+RUN $WGET https://repo.continuum.io/miniconda/Miniconda3-py311_24.9.2-0-Linux-${ARCH}.sh -O /tmp/anaconda.sh &&\
+	/bin/bash /rmp/anaconda.sh -b -p /opt/conda && rm /tmp/anaconda.sh && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh &&\
     . /opt/conda/etc/profile.d/conda.sh && conda activate $OCHEMENV 
 #&& conda install python=$PYTHON
 
@@ -62,11 +62,11 @@ ENV PATH="/usr/local/cuda/bin:/opt/conda/bin:$PATH"
 ENV CUDA_HOME=/usr/local/cuda/
 ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 
-COPY docker/conda-${ARCH}.yml /root/ochem-conda.yml
+COPY docker/conda-${ARCH}.yml /tmp/ochem-conda.yml
 
 RUN \ 
 eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate $OCHEMENV &&\
-     conda env update -f /root/ochem-conda.yml && $PIP cddd-onnx torch_geometric torch_scatter torchvision && $PIP --no-deps kgcnn==$KGCNN &&\
+     conda env update -f /tmp/ochem-conda.yml && $PIP cddd-onnx torch_geometric torch_scatter torchvision && $PIP --no-deps kgcnn==$KGCNN &&\
      conda create -n pymol-opensource && conda activate pymol-opensource && conda install -y -c conda-forge pymol-open-source &&\
      conda install -y -c anaconda numpy && ln -s /opt/conda/envs/pymol-opensource/bin/pymol /usr/bin/pymol
 
