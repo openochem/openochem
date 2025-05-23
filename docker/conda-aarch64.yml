@@ -67,8 +67,6 @@ dependencies:
   - libgrpc=1.52.1
   - libiconv=1.17
   - libjpeg-turbo=3.0.0
-  - libmamba=1.5.8
-  - libmambapy
   - libnghttp2=1.57.0
   - libnsl=2.0.1
   - libopenblas=0.3.21
@@ -87,7 +85,6 @@ dependencies:
   - libzlib=1.2.13
   - lz4-c=1.9.4
   - lzo=2.10
-  - mamba=1.5.8
   - menuinst=2.1.1
   - ncurses=6.4
   - numpy=1.26.4
