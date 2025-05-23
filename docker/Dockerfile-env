@@ -55,7 +55,6 @@ ENV OCHEMENV=base
 RUN $WGET https://repo.continuum.io/miniconda/Miniconda3-py311_24.9.2-0-Linux-${ARCH}.sh -O /tmp/anaconda.sh &&\
 	/bin/bash /tmp/anaconda.sh -b -p /opt/conda && rm /tmp/anaconda.sh && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh &&\
     . /opt/conda/etc/profile.d/conda.sh && conda activate $OCHEMENV 
-#&& conda install python=$PYTHON
 
 #START Conda base
 ENV PATH="/usr/local/cuda/bin:/opt/conda/bin:$PATH"
