@@ -1,4 +1,5 @@
 # Use root/example as user/password credentials
+version: '3.0'
 services:
 
   ochem-mongo:
@@ -21,11 +22,11 @@ services:
     restart: always
     command: --max_allowed_packet=1G
     ports:
-       - 3306:3306
+      - 3306:3306
     environment:
-       - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=true
+      - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=true
     volumes:
-       - ochem-demo-data:/var/lib/mysql:rw
+      - ochem-demo-data:/var/lib/mysql:rw
     networks:
       - ochem-demo
     healthcheck:
@@ -59,15 +60,15 @@ services:
           #    capabilities: [ gpu ]
     depends_on:
       ochem-mariadb:
-              condition: service_healthy
+        condition: service_healthy
       ochem-mongo:
-              condition: service_started
+        condition: service_started
 
 volumes:
-   ochem-demo-data:
-      name: ochem-demo-data
-   ochem-mongo-data:
-      name: ochem-mongo-data
+  ochem-demo-data:
+    name: ochem-demo-data
+  ochem-mongo-data:
+    name: ochem-mongo-data
 
 networks:
   ochem-demo:

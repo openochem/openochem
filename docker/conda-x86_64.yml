@@ -19,7 +19,6 @@ dependencies:
   - charset-normalizer=2.0.4
   - conda=24.5.0
   - conda-content-trust=0.2.0
-  - conda-libmamba-solver=24.1.0
   - conda-package-handling=2.2.0
   - conda-package-streaming=0.9.0
   - cryptography=42.0.5
@@ -60,8 +59,6 @@ dependencies:
   - libglib=2.78.4
   - libgomp=13.2.0
   - libiconv=1.17
-  - libmamba=1.5.7
-  - libmambapy=1.5.7
   - libnghttp2=1.57.0
   - libnsl=2.0.1
   - libopenblas=0.3.21
