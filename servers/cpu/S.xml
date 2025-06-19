@@ -8,6 +8,7 @@
     <sleepTimeWhileCalculating>60</sleepTimeWhileCalculating>
      <chemengine>CDK</chemengine>
         <supported-applications>
+        <application>OSMORDRED</application>
         <application>ALogPS</application>
         <application>CDDD</application>
         <application>CDK23</application>
