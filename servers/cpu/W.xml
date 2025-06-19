@@ -9,7 +9,7 @@
      <chemengine>CDK</chemengine>
         <supported-applications>
 
-         <application>ALogPS</application>
+        <application>ALogPS</application>
         <application>CDDD</application>
         <application>CDK23</application>
         <application>ECFP</application>
@@ -23,6 +23,7 @@
         <application>MolPrint</application>
         <application>MORDRED</application>
         <application>OEstate</application>
+        <application>OSMORDRED</application>
         <application>PyDescriptor</application>
         <application>QNPR</application>
         <application>RDKIT</application>

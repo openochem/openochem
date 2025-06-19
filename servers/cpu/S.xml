@@ -8,7 +8,7 @@
     <sleepTimeWhileCalculating>60</sleepTimeWhileCalculating>
      <chemengine>CDK</chemengine>
         <supported-applications>
-        <application>OSMORDRED</application>
+
         <application>ALogPS</application>
         <application>CDDD</application>
         <application>CDK23</application>
@@ -23,6 +23,7 @@
         <application>MolPrint</application>
         <application>MORDRED</application>
         <application>OEstate</application>
+        <application>OSMORDRED</application>
         <application>PyDescriptor</application>
         <application>QNPR</application>
         <application>RDKIT</application>
