@@ -79,7 +79,7 @@ RUN\
 	conda install -y -c conda-forge conda-libmamba-solver && conda env create -f environment.yml && conda activate map4 &&\
 	$PIP git+https://github.com/reymond-group/map4 && cd && rm -rf map4 &&\
 #MACAU
-	cd && $PIP numpy scipy cython pandas requests && git clone https://github.com/jaak-s/macau.git &&\
+	cd && $PIP molvs numpy scipy cython pandas requests && git clone https://github.com/jaak-s/macau.git &&\
 	cd macau && python3.6 setup.py install && cd && rm -rf macau\
 	; else true ; fi
 
