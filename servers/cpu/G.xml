@@ -6,11 +6,11 @@
     <memoryLimit>4096</memoryLimit>
     <sleepTime>60</sleepTime>
     <sleepTimeWhileCalculating>60</sleepTimeWhileCalculating>
-     <chemengine>CDK</chemengine>
+    <gpuCard>-1</gpuCard>
+    <chemengine>CDK</chemengine>
         <supported-applications>
         <application>ChemProp</application>
         <application>CNF</application>
-        <application>DEEPCHEM</application>
         <application>DLCA</application>
         <application>DNN</application>
         <application>KGCNN</application>
