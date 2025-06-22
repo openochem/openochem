@@ -65,8 +65,9 @@ eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate $OCHE
      conda install -y -c anaconda numpy && ln -s /opt/conda/envs/pymol-opensource/bin/pymol /usr/bin/pymol &&\
      if [ "$ARCH" = "x86_64" ] ; then\
      cd /tmp && git clone https://github.com/osmoai/osmordred.git && cd osmordred && cp README.md skbuild && cd skbuild && ./setup_env.sh &&\
-     . /opt/conda/etc/profile.d/conda.sh && conda activate osmordred && cd /tmp/osmordred/skbuild && ./build.sh && pip install dist/osmordred-0.2.0-cp311-cp311-linux_${ARCH}.whl && cd ../.. && rm -rf osmordred \
+     . /opt/conda/etc/profile.d/conda.sh && conda activate osmordred && cd /tmp/osmordred/skbuild && ./build.sh && pip install dist/osmordred-0.2.0-cp311-cp311-linux_${ARCH}.whl && cd ../.. && rm -rf osmordred pip install torch==2.2.2 \
      ; else true ; fi
+
 
 ARG EXTENDED=true
 
@@ -116,6 +117,15 @@ RUN\
 #KRAKENX
     cd && git clone https://gitlab.com/vishsoft/krakenx.git && cd krakenx/build && bash build.sh && cp KrakenX.jar /etc/source/mopac2016 &&\
     cd && rm -rf krakenx && rm -rf /etc/source/mopac2016/mopac.txt /etc/source/mopac2016/mols.txt \
+  ; else true ; fi
+
+#enable if full version is required
+#ARG FIRM=true 
+#COPY ./firm/source /etc/source
+
+RUN\
+   if [ "$FIRM" = "true" ] ; then\
+   apt-get install -y build-essential libstdc++6 && cd /etc/source/smilesxy && python setup.py install \ 
   ; else true ; fi
 
 #making executable
