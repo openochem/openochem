@@ -65,7 +65,7 @@ eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate $OCHE
      conda install -y -c anaconda numpy && ln -s /opt/conda/envs/pymol-opensource/bin/pymol /usr/bin/pymol &&\
      if [ "$ARCH" = "x86_64" ] ; then\
      cd /tmp && git clone https://github.com/osmoai/osmordred.git && cd osmordred && cp README.md skbuild && cd skbuild && ./setup_env.sh &&\
-     . /opt/conda/etc/profile.d/conda.sh && conda activate osmordred && cd /tmp/osmordred/skbuild && ./build.sh && pip install dist/osmordred-0.2.0-cp311-cp311-linux_${ARCH}.whl && cd ../.. && rm -rf osmordred pip install torch==2.2.2 \
+     . /opt/conda/etc/profile.d/conda.sh && conda activate osmordred && cd /tmp/osmordred/skbuild && ./build.sh && pip install dist/osmordred-0.2.0-cp311-cp311-linux_${ARCH}.whl && cd ../.. && rm -rf osmordred && conda activate $OCHEMENV && pip install torch==2.2.2 \
      ; else true ; fi
 
 
