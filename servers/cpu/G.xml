@@ -9,6 +9,7 @@
     <gpuCard>-1</gpuCard>
     <chemengine>CDK</chemengine>
         <supported-applications>
+        <application>DEEPCHEM</application>
         <application>ChemProp</application>
         <application>CNF</application>
         <application>DLCA</application>
