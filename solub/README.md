@@ -62,7 +62,6 @@ N.B.! If you have a local installation of mysql, it will interfere with the dock
 
 ## Citation
 
-Be aware of overfitting by hyperparameter optimization! I.V. Tetko, R. van Deursen, G. Godin, submitted
-
+Tetko, I. V.; van Deursen, R.; Godin, G. Be Aware of Overfitting by Hyperparameter Optimization! J. Cheminformatics 2024, 16 (1), 139. https://doi.org/10.1186/s13321-024-00934-w.
 
 

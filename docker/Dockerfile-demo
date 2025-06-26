@@ -30,8 +30,9 @@ RUN cd ${OCHEM_HOME}/openochem/build && ./build_ochem ${OCHEM_BUILD_ARGS} && ./b
 
 USER root
 
+RUN  mv ${OCHEM_HOME}/openochem/env/ochemenv/ochem.release /ochem/
+# always skip cache for these lines
+ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" skipcache
+COPY ./docker/cfg ${OCHEM_HOME}/openochem/env/ochemenv/cfg
 COPY ./docker/deploy.sh ${OCHEM_HOME}/deploy.sh
 COPY ./servers/cpu/* /home/openochem/openochem/servers/cpu 
-
-COPY ./docker/cfg ${OCHEM_HOME}/openochem/env/ochemenv/cfg
-RUN  mv ${OCHEM_HOME}/openochem/env/ochemenv/ochem.release /ochem/
