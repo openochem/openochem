@@ -45,4 +45,10 @@ N.B.! If you would like to use GPU, follow installation instructions at https://
 docker-compose -f docker/ochem-nvidia.yml up
 ```
 
-N.B.! If you have a local installation of mysql, it will interfere with the docker. Stop the local mysql before running "up" command.
+To stop this container run
+
+```bash
+docker-compose -f docker/ochem-demo.yml down
+```
+
+N.B.! If you have a local installation of mysql, it may interfere with the docker. Stop the local mysql before running "up" command.
