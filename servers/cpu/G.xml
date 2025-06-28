@@ -6,7 +6,6 @@
     <memoryLimit>4096</memoryLimit>
     <sleepTime>60</sleepTime>
     <sleepTimeWhileCalculating>60</sleepTimeWhileCalculating>
-    <gpuCard>-1</gpuCard>
     <chemengine>CDK</chemengine>
         <supported-applications>
         <application>DEEPCHEM</application>
