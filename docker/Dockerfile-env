@@ -99,7 +99,7 @@ RUN mkdir -p $SOURCE/mold2/ &&  $WGET 'https://www.fda.gov/files/science%20&%20r
 RUN\
     if [ "$CHINA" = "" ] ; then\
 #Fragmentor
-    apt-get -y install cmake &&\
+    apt-get update && apt-get -y install cmake &&\
     mkdir -p $SOURCE/fragmentor/ &&  $WGET https://web.archive.org/web/20150219162247/http://infochim.u-strasbg.fr/recherche/Download/Fragmentor/Fragmentor2014_Linux-64bit && mv Fragmentor2014_Linux-64bit $SOURCE/fragmentor/isida-fragmentor-linux &&\
 #OpenBabel 2.4.1 required for spectrophores
     cd && $WGET https://github.com/openbabel/openbabel/archive/refs/tags/openbabel-2-4-1.tar.gz && tar -zxf openbabel-2-4-1.tar.gz &&\
