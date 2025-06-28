@@ -1,0 +1,77 @@
+# Use root/example as user/password credentials
+services:
+
+  ochem-mongo:
+    image: mongo:4.4
+    container_name: ochem-mongo
+    restart: always
+    ports:
+      - 27017:27017
+    volumes: 
+      - ochem-mongo-data:/data/db
+    networks:
+      - ochem-demo
+
+  ochem-mariadb:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile-mariadb
+    image: ochem-mariadb:latest
+    container_name: ochem-mariadb
+    restart: always
+    command: --max_allowed_packet=1G
+    ports:
+      - 3306:3306
+    environment:
+      - MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=true
+    volumes:
+      - ochem-demo-data:/var/lib/mysql:rw
+    networks:
+      - ochem-demo
+    healthcheck:
+      test:  bash -c "[[ -f /var/lib/mysql/ochem_initialized && -f  /var/lib/mysql/ochem_demo/ValidationSet.ibd ]]"
+      interval: 1s
+      retries: 300
+
+  ochem-demo:
+    hostname: localhost
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile-demo
+    image: ochem
+    container_name: ochem-demo
+    restart: always
+    ports:
+      - 8080:8080
+      - 7080:7080
+    networks:
+      - ochem-demo
+    environment:
+      - METAMEMORY=1024
+      - OCHEMEMORY=2048
+    command: bash deploy.sh
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
+    depends_on:
+      ochem-mariadb:
+        condition: service_healthy
+      ochem-mongo:
+        condition: service_started
+
+volumes:
+  ochem-demo-data:
+    name: ochem-demo-data
+  ochem-mongo-data:
+    name: ochem-mongo-data
+
+networks:
+  ochem-demo:
+    name: ochem-demo
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1500
