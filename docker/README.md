@@ -39,14 +39,10 @@ docker-compose -f docker/ochem-demo.yml up
 
 The OCHEM will be available at http://localhost:8080 and http://localhost:7080/metaserver
 
-N.B.! If you would like to use GPU, follow installation instructions at https://github.com/NVIDIA/nvidia-docker 
-and enable  nvidia docker requirements in docker/ochem-demo.yml  and start GPU-enabled servers (servers/gpu)
+N.B.! If you would like to use GPU, follow installation instructions at https://github.com/NVIDIA/nvidia-docker and as the last command run:
 
-      #resources:
-        #reservations:
-          #devices:
-          #  - driver: nvidia
-          #    count: all
-          #    capabilities: [ gpu ]
+```bash
+docker-compose -f docker/ochem-nvidia.yml up
+```
 
 N.B.! If you have a local installation of mysql, it will interfere with the docker. Stop the local mysql before running "up" command.
