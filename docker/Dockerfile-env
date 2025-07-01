@@ -36,7 +36,8 @@ RUN cd /tmp ; git clone https://github.com/openochem/ochem-external-tools.git &&
     /usr/bin//Rscript -e 'install.packages("randomForest",repos="https://cran.rstudio.com")' 
 
 #Tomcats
-ARG apacheversion="9.0.106"
+# apacheversion version > 89 creates issues for consensus models
+ARG apacheversion="9.0.89"
 ARG TOM=9
 ARG apachetomcat="apache-tomcat-"$apacheversion
 ARG conf_dir="$HOME/ochem/conf"
