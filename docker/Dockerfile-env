@@ -90,7 +90,7 @@ RUN\
 RUN mkdir -p $SOURCE/mold2/ &&  $WGET 'https://www.fda.gov/files/science%20&%20research/published/Mold2-Executable-File.zip' &&\
 	unzip Mold2-Executable-File.zip && cp Mold2/Linux_x86-64/Mold2 $SOURCE/mold2/mold2-linux && rm -rf Mold2* &&\
 # MOPAC2016
-	cd && mkdir -p /etc/source/mopac2016 && mkdir mop && cd mop &&  $WGET http://openmopac.net/MOPAC2016_for_Linux_64_bit.zip &&\
+	cd && mkdir -p /etc/source/mopac2016 && mkdir mop && cd mop &&  && curl -s http://openmopac.net/MOPAC2016_for_Linux_64_bit.zip --output MOPAC2016_for_Linux_64_bit.zip &&\
 	unzip MOPAC2016_for_Linux_64_bit.zip && cp MOPAC2016.exe /etc/source/mopac2016/MOPAC2016-linux && cd && rm -rf mop &&\
 #SIGMA profiles
     git clone https://github.com/lvpp/sigma.git && cp sigma/MOPAC/POA1.rm1 /etc/source/mopac2016/ && rm -rf sigma
