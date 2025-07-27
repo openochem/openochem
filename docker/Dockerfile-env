@@ -92,7 +92,7 @@ RUN\
 	dpkg --add-architecture i386 && apt-get update && apt-get install -y wine-stable wine32 &&\
 #MAP4 + old python3.6
 	eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && cd && git clone https://github.com/reymond-group/map4 && cd map4 &&\
-	conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r &&\
+	#conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r &&\
 	conda install -y -c conda-forge conda-libmamba-solver && conda env create -f environment.yml && conda activate map4 &&\
 	$PIP git+https://github.com/reymond-group/map4 && cd && rm -rf map4 &&\
 #MACAU
