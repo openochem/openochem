@@ -12,6 +12,9 @@ WORKDIR ${OCHEM_HOME}
 
 USER root
 
+#always rerun
+ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" skipcache
+
 RUN git clone https://github.com/openochem/openochem.git && chmod -R +x openochem 
 
 COPY ./docker/deploy.sh ${OCHEM_HOME}/deploy.sh
