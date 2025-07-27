@@ -5,7 +5,7 @@ ARG OCHEM_HOME="/home/${OCHEM_USER}"
 ARG OCHEM_BUILD_ARGS="-r main"
 
 # maven for building source
-ARG MAVEN_VERSION=3.9.10
+ARG MAVEN_VERSION=3.9.11
 ARG BASE_URL=https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries
 
 RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
