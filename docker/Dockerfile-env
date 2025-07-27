@@ -1,5 +1,5 @@
-FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04
-ARG PYTHON=3.10
+FROM nvidia/cuda:12.2.2-cudnn8-devel-ubuntu22.04
+ARG PYTHON=3.11
 ARG KGCNN=3.1
 #Enable to use proxy in China, it will also disable some code below
 ARG CHINA="" 
@@ -72,12 +72,27 @@ eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && conda activate $OCHE
 
 ARG EXTENDED=true
 
+#Installing external tools for both platforms
+# Mold2
+RUN\
+	if [ "$EXTENDED" = "true" ] ; then\
+	mkdir -p $SOURCE/mold2/ && $WGET 'https://www.fda.gov/files/science%20&%20research/published/Mold2-Executable-File.zip' &&\
+	unzip Mold2-Executable-File.zip && cp Mold2/Linux_x86-64/Mold2 $SOURCE/mold2/mold2-linux && rm -rf Mold2* &&\
+# MOPAC2016
+	cd && mkdir -p /etc/source/mopac2016 && mkdir mop && cd mop && curl -s http://openmopac.net/MOPAC2016_for_Linux_64_bit.zip --output MOPAC2016_for_Linux_64_bit.zip &&\
+	unzip MOPAC2016_for_Linux_64_bit.zip && cp MOPAC2016.exe /etc/source/mopac2016/MOPAC2016-linux && cd && rm -rf mop &&\
+#SIGMA profiles
+	git clone https://github.com/lvpp/sigma.git && cp sigma/MOPAC/POA1.rm1 /etc/source/mopac2016/ && rm -rf sigma \
+	; else true ; fi
+
+#Installing external tools for Intel only
 RUN\
 	if [ "$EXTENDED$ARCH" = "truex86_64" ] ; then\
 #Win32
 	dpkg --add-architecture i386 && apt-get update && apt-get install -y wine-stable wine32 &&\
 #MAP4 + old python3.6
 	eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && cd && git clone https://github.com/reymond-group/map4 && cd map4 &&\
+	conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r &&\
 	conda install -y -c conda-forge conda-libmamba-solver && conda env create -f environment.yml && conda activate map4 &&\
 	$PIP git+https://github.com/reymond-group/map4 && cd && rm -rf map4 &&\
 #MACAU
@@ -85,54 +100,46 @@ RUN\
 	cd macau && python3.6 setup.py install && cd && rm -rf macau\
 	; else true ; fi
 
-#Installing external tools from OpenOchem source repositories
-# Mold2
-RUN mkdir -p $SOURCE/mold2/ &&  $WGET 'https://www.fda.gov/files/science%20&%20research/published/Mold2-Executable-File.zip' &&\
-	unzip Mold2-Executable-File.zip && cp Mold2/Linux_x86-64/Mold2 $SOURCE/mold2/mold2-linux && rm -rf Mold2* &&\
-# MOPAC2016
-	cd && mkdir -p /etc/source/mopac2016 && mkdir mop && cd mop &&  && curl -s http://openmopac.net/MOPAC2016_for_Linux_64_bit.zip --output MOPAC2016_for_Linux_64_bit.zip &&\
-	unzip MOPAC2016_for_Linux_64_bit.zip && cp MOPAC2016.exe /etc/source/mopac2016/MOPAC2016-linux && cd && rm -rf mop &&\
-#SIGMA profiles
-    git clone https://github.com/lvpp/sigma.git && cp sigma/MOPAC/POA1.rm1 /etc/source/mopac2016/ && rm -rf sigma
-
-### For China code below does not install yet, can be still debugged to make it working
-
+### For China code below does not install yet; can be still debugged to make it working
 RUN\
-    if [ "$CHINA" = "" ] ; then\
+	if [ "$CHINA" = "" ] ; then\
 #Fragmentor
-    apt-get update && apt-get -y install cmake &&\
-    mkdir -p $SOURCE/fragmentor/ &&  $WGET https://web.archive.org/web/20150219162247/http://infochim.u-strasbg.fr/recherche/Download/Fragmentor/Fragmentor2014_Linux-64bit && mv Fragmentor2014_Linux-64bit $SOURCE/fragmentor/isida-fragmentor-linux &&\
+	apt-get update && apt-get -y install cmake &&\
+	mkdir -p $SOURCE/fragmentor/ && $WGET https://web.archive.org/web/20150219162247/http://infochim.u-strasbg.fr/recherche/Download/Fragmentor/Fragmentor2014_Linux-64bit &&\
+	mv Fragmentor2014_Linux-64bit $SOURCE/fragmentor/isida-fragmentor-linux &&\
 #OpenBabel 2.4.1 required for spectrophores
-    cd && $WGET https://github.com/openbabel/openbabel/archive/refs/tags/openbabel-2-4-1.tar.gz && tar -zxf openbabel-2-4-1.tar.gz &&\
-    rm openbabel-2-4-1.tar.gz && cd openbabel-openbabel-2-4-1 &&\
-  if [ "$ARCH" = "aarch64" ] ; then\
-    sed -i 's|-119|137|' src/formats/pngformat.cpp && sed -i 's|-16|240|' src/formats/yasaraformat.cpp\
-    ; else true ; fi &&\
-  mkdir build && cd build/ && /usr/bin/cmake .. && make -$JNN && make install && cd && rm -rf openbabel* &&\
+	cd && $WGET https://github.com/openbabel/openbabel/archive/refs/tags/openbabel-2-4-1.tar.gz && tar -zxf openbabel-2-4-1.tar.gz &&\
+	rm openbabel-2-4-1.tar.gz && cd openbabel-openbabel-2-4-1 &&\
+	if [ "$ARCH" = "aarch64" ] ; then\
+		sed -i 's|-119|137|' src/formats/pngformat.cpp && sed -i 's|-16|240|' src/formats/yasaraformat.cpp\
+	; else true ; fi &&\
+	mkdir build && cd build/ && /usr/bin/cmake .. && make -$JNN && make install && cd && rm -rf openbabel* &&\
 #silicos-it
-    cd && mkdir -p $SOURCE/silicos-it && git clone https://github.com/silicos-it/strip-it.git && cd strip-it && /usr/bin/cmake CMakeLists.txt && make -$JNN &&\
-    if [ "$ARCH" = "x86_64" ] ; then\
-    cp strip-it  $SOURCE/silicos-it/strip-it-linux\
-    ; else cp strip-it  $SOURCE/silicos-it/strip-it-${ARCH} ; fi &&\
-    cd && rm -rf strip-it &&\
+	cd && mkdir -p $SOURCE/silicos-it && git clone https://github.com/silicos-it/strip-it.git && cd strip-it && /usr/bin/cmake CMakeLists.txt && make -$JNN &&\
+	if [ "$ARCH" = "x86_64" ] ; then\
+	cp strip-it $SOURCE/silicos-it/strip-it-linux\
+	; else cp strip-it $SOURCE/silicos-it/strip-it-${ARCH} ; fi &&\
+	cd && rm -rf strip-it &&\
 #KRAKENX
-    cd && git clone https://gitlab.com/vishsoft/krakenx.git && cd krakenx/build && bash build.sh && cp KrakenX.jar /etc/source/mopac2016 &&\
-    cd && rm -rf krakenx && rm -rf /etc/source/mopac2016/mopac.txt /etc/source/mopac2016/mols.txt \
-  ; else true ; fi
+	cd && git clone https://gitlab.com/vishsoft/krakenx.git && cd krakenx/build && bash build.sh && cp KrakenX.jar /etc/source/mopac2016 &&\
+	cd && rm -rf krakenx && rm -rf /etc/source/mopac2016/mopac.txt /etc/source/mopac2016/mols.txt \
+	; else true ; fi
 
-#enable if full version is required
+#enable if full version is required (or disable)
 #ARG FIRM=true 
 #COPY ./firm/source /etc/source
 
 RUN\
-   if [ "$FIRM" = "true" ] ; then\
-   apt-get update && apt-get install -y build-essential libstdc++6 && cd /etc/source/smilesxy && python setup.py install \ 
-  ; else true ; fi
+	if [ "$FIRM" = "true" ] ; then\
+	apt-get update && apt-get install -y build-essential libstdc++6 && cd /etc/source/smilesxy && python setup.py install \ 
+	; else true ; fi
 
 #making executable
-RUN chmod -R +x $SOURCE && chmod 777 -R $SOURCE && chmod 777 -R /etc/cs_servers && chmod 777 /var/run/screen && chmod +x /opt/conda/etc/profile.d/conda.sh && mkdir /ochem && updatedb && rm -rf $HOME/*
+RUN chmod -R +x $SOURCE && chmod 777 -R $SOURCE && chmod 777 -R /etc/cs_servers && chmod 777 /var/run/screen && chmod +x /opt/conda/etc/profile.d/conda.sh &&\
+	mkdir /ochem && apt-get clean && updatedb && rm -rf $HOME/* 
 
-ARG VERSION_OCHEM="4.3.180" # OCHEM version compatible with this image
+ARG VERSION_OCHEM="4.3.183" # version compatible with this image
+
 
 ENV PATH="/usr/lib/jvm/java-8-openjdk-amd64/jre/bin:/usr/lib/jvm/java-8-openjdk-arm64/jre/bin:$PATH"
 ENV SCREENDIR=/tmp/.screen

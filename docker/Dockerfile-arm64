@@ -1,0 +1,180 @@
+#universal image for AMD and ARM platforms
+FROM nvidia/cuda:12.2.2-cudnn8-devel-ubuntu22.04
+ARG ARCH=x86_64
+ARG TORCH="torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cu121"
+ARG TENSOR="==2.15.1"
+
+#for aarch64 - enable lines below
+#ARG ARCH=aarch64
+#ARG TORCH="torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cpu" 
+#COPY docker/lib64 /
+
+ARG CHINA=""
+#Enable to use proxy in China, it will also disable some code below
+#ARG CHINA="-i https://pypi.tuna.tsinghua.edu.cn/simple" 
+
+ARG PYTHON=3.11
+ARG KGCN="==3.1"
+ARG CUDA=12x # should match the version of image
+ARG PROB="==0.23" #TF 2.15 is compatibille with 0.23
+ARG RDKIT="==2023.9.1" # required for osmodred; for compatibility the same verision is used everywhere
+ARG JNN=j8
+ENV DEBIAN_FRONTEND=noninteractive
+ARG PIP="pip install $CHINA --no-cache-dir --default-timeout=10000"
+
+RUN apt-get -qq update --fix-missing && apt-get update && apt-get -y install ash &&\
+	/bin/ash -c 'set -ex && ARC=`uname -m` && if [ "$ARCH" != "$ARC" ]; then echo "incorrect platform: $ARCH != $ARC" && false; else apt-get -y \
+	--no-install-recommends install apt-utils openjdk-8-jdk openjdk-11-jdk vim tar wget locate zip unzip iputils-ping python$PYTHON python3-pip \
+	git authbind wait-for-it software-properties-common screen libgomp1 libopenblas-base libomp-dev ca-certificates libglib2.0-0 libxext6 libsm6 \
+	libxrender1 rsync curl ash htop libssl-dev &&\
+	git clone https://gitlab.kitware.com/cmake/cmake.git && cd cmake && ./bootstrap && make -$JNN && make install && cd .. && rm -rf cmake; fi'
+
+ARG HOME=/etc/ochem
+ARG SOURCE=/etc/source
+ARG WGET="wget --no-check-certificate -q"
+ARG GITDIR=/tmp/ochem-external-tools/
+ENV GIT_SSL_NO_VERIFY=true
+
+#Installing external tools from OpenOchem source repositories
+RUN cd /tmp ; git clone https://github.com/openochem/ochem-external-tools.git &&\
+# copy to correct place
+	mkdir $HOME && cd $HOME && cp -r $GITDIR/ochem/ . && mkdir -p /etc/cs_servers && mkdir -p $SOURCE && cp -r $GITDIR/* $SOURCE && rm -rf $GITDIR &&\
+# GSFRAG
+	cd $SOURCE/gsfrag/source && bash make.sh && mv gsfrag ../gsfrag-${ARCH} && mv gsfragl ../gsfragl-${ARCH} &&\
+#R latest version
+	apt update && apt install -y r-base && /usr/bin/Rscript -e 'install.packages("pls",repos="https://cran.rstudio.com/")' &&\
+	/usr/bin//Rscript -e 'install.packages("randomForest",repos="https://cran.rstudio.com")' 
+
+#Tomcats
+# Newer versions of tomcat do not work
+ARG apacheversion="9.0.89"
+ARG TOM=9
+ARG apachetomcat="apache-tomcat-"$apacheversion
+ARG conf_dir="$HOME/ochem/conf"
+RUN cd && $WGET https://archive.apache.org/dist/tomcat/tomcat-$TOM/v$apacheversion/bin/$apachetomcat.zip && unzip $apachetomcat.zip &&\
+	cp -r $apachetomcat "$HOME/ochem-tomcat" && rm -rf "$HOME/ochem-tomcat/webapps/ROOT" && mv $apachetomcat "$HOME/metaserver-tomcat" &&\
+	rm -rf $apachetomcat.zip && ln -sf $conf_dir/tomcat/ochem-server.xml $HOME/ochem-tomcat/conf/server.xml &&\
+	ln -sf $conf_dir/tomcat/metaserver-server.xml $HOME/metaserver-tomcat/conf/server.xml && mkdir /etc/ochem/cs_release && cd $HOME &&\
+	zip -9 -r /home/ochem.zip *
+
+#START Conda base
+ENV OCHEMENV=base
+ENV PATH="/usr/local/cuda/bin:/opt/conda/bin:$PATH"
+ENV CUDA_HOME=/usr/local/cuda/
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
+RUN $WGET https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-${ARCH}.sh -O /root/anaconda.sh &&\
+	/bin/bash /root/anaconda.sh -b -p /opt/conda && rm /root/anaconda.sh && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh &&\
+	. /opt/conda/etc/profile.d/conda.sh && conda activate $OCHEMENV &&\
+	conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r &&\
+	conda update -n $OCHEMENV -c defaults conda && python -m pip install --upgrade pip &&\
+	conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r &&\
+	conda install python=$PYTHON && $PIP rdkit$RDKIT git+https://github.com/bp-kelley/descriptastorus texttable &&\
+	conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r &&\
+	conda install -y -c conda-forge conda-libmamba-solver libarchive openbabel &&\
+	conda install -y scikit-learn && $PIP lightgbm xgboost catboost molvs &&\
+	$PIP tensorflow$TENSOR protobuf &&\
+#manual TF addons installation (required only for arm64...)
+	if [ "$ARCH" = "aarch64" ] ; then\
+		conda install -c conda-forge bazel==6.5.0 && $PIP tensorflow-io && cd && git clone https://github.com/tensorflow/addons.git && cd addons &&\
+		export TF_NEED_CUDA="0" && python ./configure.py && bazel build build_pip_pkg && bazel-bin/build_pip_pkg artifacts &&\
+		$PIP artifacts/tensorflow_addons-*.whl && cd && rm -rf addons\
+	; else $PIP cupy-cuda$CUDA --upgrade; fi &&\
+	$PIP $TORCH &&\
+	$PIP h5py Pebble matplotlib keras tensorboardX pyyaml xlrd mysql.connector opencv-python tables fire sympy mhfp &&\
+	$PIP git+https://github.com/mordred-descriptor/mordred chainer line_profiler pudb &&\
+	$PIP kgcnn$KGCN torch-scatter torch-sparse torch_geometric numpy fastcluster pybind11 numba Levenshtein cddd-onnx &&\
+#Fix for bug https://github.com/tensorflow/tensorflow/issues/62607
+	sed -i 's|epsilon=1e-3|epsilon=1e-7|' /opt/conda/lib/python$PYTHON/site-packages/kgcnn/layers_core/norm.py &&\
+	sed -i 's|epsilon=1e-3|epsilon=1e-7|' /opt/conda/lib/python$PYTHON/site-packages/kgcnn/layers/norm.py &&\
+	$PIP tensorflow$TENSOR fastprop sympy numpy deepchem==2.8.0 gpflow tensorflow-probability$PROB scipy pandas &&\
+	conda create -n pymol-opensource && conda activate pymol-opensource && conda install -y -c conda-forge pymol-open-source &&\
+	conda install -y -c anaconda numpy && ln -s /opt/conda/envs/pymol-opensource/bin/pymol /usr/bin/pymol &&\
+#OSMODRED
+	if [ "$ARCH" = "x86_64" ] ; then\
+	cd /tmp && git clone https://github.com/osmoai/osmordred.git && cd osmordred && cp README.md skbuild && cd skbuild && ./setup_env.sh &&\
+	. /opt/conda/etc/profile.d/conda.sh && conda activate osmordred && cd /tmp/osmordred/skbuild && ./build.sh && pip install dist/osmordred-0.2.0-cp311-cp311-linux_${ARCH}.whl && cd ../.. && rm -rf osmordred \
+	; else conda activate $OCHEMENV && $PIP tensorflow==2.15.0 --upgrade && $PIP tensorflow$TENSOR --upgrade ; fi &&\
+	conda activate $OCHEMENV &&\
+	conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r &&\
+	conda install -y -c conda-forge xtb-python &&\
+	conda clean -y --all
+
+ARG EXTENDED=true
+
+#Installing external tools for both platforms
+# Mold2
+RUN\
+	if [ "$EXTENDED" = "true" ] ; then\
+	mkdir -p $SOURCE/mold2/ && $WGET 'https://www.fda.gov/files/science%20&%20research/published/Mold2-Executable-File.zip' &&\
+	unzip Mold2-Executable-File.zip && cp Mold2/Linux_x86-64/Mold2 $SOURCE/mold2/mold2-linux && rm -rf Mold2* &&\
+# MOPAC2016
+	cd && mkdir -p /etc/source/mopac2016 && mkdir mop && cd mop && curl -s http://openmopac.net/MOPAC2016_for_Linux_64_bit.zip --output MOPAC2016_for_Linux_64_bit.zip &&\
+	unzip MOPAC2016_for_Linux_64_bit.zip && cp MOPAC2016.exe /etc/source/mopac2016/MOPAC2016-linux && cd && rm -rf mop &&\
+#SIGMA profiles
+	git clone https://github.com/lvpp/sigma.git && cp sigma/MOPAC/POA1.rm1 /etc/source/mopac2016/ && rm -rf sigma \
+	; else true ; fi
+
+#Installing external tools for Intel only
+RUN\
+	if [ "$EXTENDED$ARCH" = "truex86_64" ] ; then\
+#Win32
+	dpkg --add-architecture i386 && apt-get update && apt-get install -y wine-stable wine32 &&\
+#MAP4 + old python3.6
+	eval "$(command conda 'shell.bash' 'hook' 2> /dev/null)" && cd && git clone https://github.com/reymond-group/map4 && cd map4 &&\
+	conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r &&\
+	conda install -y -c conda-forge conda-libmamba-solver && conda env create -f environment.yml && conda activate map4 &&\
+	$PIP git+https://github.com/reymond-group/map4 && cd && rm -rf map4 &&\
+#MACAU
+	cd && $PIP molvs numpy scipy cython pandas requests && git clone https://github.com/jaak-s/macau.git &&\
+	cd macau && python3.6 setup.py install && cd && rm -rf macau\
+	; else true ; fi
+
+### For China code below does not install yet; can be still debugged to make it working
+RUN\
+	if [ "$CHINA" = "" ] ; then\
+#Fragmentor
+	apt-get update && apt-get -y install cmake &&\
+	mkdir -p $SOURCE/fragmentor/ && $WGET https://web.archive.org/web/20150219162247/http://infochim.u-strasbg.fr/recherche/Download/Fragmentor/Fragmentor2014_Linux-64bit &&\
+	mv Fragmentor2014_Linux-64bit $SOURCE/fragmentor/isida-fragmentor-linux &&\
+#OpenBabel 2.4.1 required for spectrophores
+	cd && $WGET https://github.com/openbabel/openbabel/archive/refs/tags/openbabel-2-4-1.tar.gz && tar -zxf openbabel-2-4-1.tar.gz &&\
+	rm openbabel-2-4-1.tar.gz && cd openbabel-openbabel-2-4-1 &&\
+	if [ "$ARCH" = "aarch64" ] ; then\
+		sed -i 's|-119|137|' src/formats/pngformat.cpp && sed -i 's|-16|240|' src/formats/yasaraformat.cpp\
+	; else true ; fi &&\
+	mkdir build && cd build/ && /usr/bin/cmake .. && make -$JNN && make install && cd && rm -rf openbabel* &&\
+#silicos-it
+	cd && mkdir -p $SOURCE/silicos-it && git clone https://github.com/silicos-it/strip-it.git && cd strip-it && /usr/bin/cmake CMakeLists.txt && make -$JNN &&\
+	if [ "$ARCH" = "x86_64" ] ; then\
+	cp strip-it $SOURCE/silicos-it/strip-it-linux\
+	; else cp strip-it $SOURCE/silicos-it/strip-it-${ARCH} ; fi &&\
+	cd && rm -rf strip-it &&\
+#KRAKENX
+	cd && git clone https://gitlab.com/vishsoft/krakenx.git && cd krakenx/build && bash build.sh && cp KrakenX.jar /etc/source/mopac2016 &&\
+	cd && rm -rf krakenx && rm -rf /etc/source/mopac2016/mopac.txt /etc/source/mopac2016/mols.txt \
+	; else true ; fi
+
+#enable if full version is required (or disable)
+ARG FIRM=true 
+COPY ./firm/source /etc/source
+
+RUN\
+	if [ "$FIRM" = "true" ] ; then\
+	apt-get update && apt-get install -y build-essential libstdc++6 && cd /etc/source/smilesxy && python setup.py install \ 
+	; else true ; fi
+
+#See bug https://stackoverflow.com/questions/79547083/no-module-named-distutils-msvccompiler-after-using-f2py
+RUN sed -i 's|from distutils.msvccompiler import get_build_version as get_build_msvc_version||' /opt/conda/lib/python$PYTHON/site-packages/numpy/distutils/mingw32ccompiler.py
+
+#making executable
+RUN chmod -R +x $SOURCE && chmod 777 -R $SOURCE && chmod 777 -R /etc/cs_servers && chmod 777 /var/run/screen && chmod +x /opt/conda/etc/profile.d/conda.sh &&\
+	mkdir /ochem && apt-get clean && updatedb && rm -rf $HOME/* 
+
+ARG VERSION_OCHEM="4.3.183" # version compatible with this image
+
+ENV PATH="/usr/lib/jvm/java-8-openjdk-amd64/jre/bin:/usr/lib/jvm/java-8-openjdk-arm64/jre/bin:$PATH"
+ENV SCREENDIR=/tmp/.screen
+ENV OMP_NUM_THREADS=4
+ENV CUDA_DEVICE_ORDER=PCI_BUS_ID
+ENV OCHEM="$VERSION_OCHEM"
