@@ -106,7 +106,10 @@ ARG EXTENDED=true
 # Mold2
 RUN\
 	if [ "$EXTENDED" = "true" ] ; then\
-	mkdir -p $SOURCE/mold2/ && $WGET 'https://www.fda.gov/files/science%20&%20research/published/Mold2-Executable-File.zip' &&\
+	mkdir -p $SOURCE/mold2/ &&\
+	$WGET 'https://www.fda.gov/files/science & research/published/Mold2-Executable-File.zip' &&\
+# sometimes above line fails; disable it and use this one
+#	$WGET 'https://www.fda.gov/files/science%20&%20research/published/Mold2-Executable-File.zip' &&\
 	unzip Mold2-Executable-File.zip && cp Mold2/Linux_x86-64/Mold2 $SOURCE/mold2/mold2-linux && rm -rf Mold2* &&\
 # MOPAC2016
 	cd && mkdir -p /etc/source/mopac2016 && mkdir mop && cd mop && curl -s http://openmopac.net/MOPAC2016_for_Linux_64_bit.zip --output MOPAC2016_for_Linux_64_bit.zip &&\
