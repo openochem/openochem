@@ -1,0 +1,191 @@
+# OpenOchem Dockerfile optimized for Apple M* macs: No CUDA/Conda dependencies - not working correctly yet
+FROM ubuntu:22.04
+
+ARG ARCH=aarch64
+ARG TORCH="torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1"
+ARG TENSOR="==2.15.1"
+
+# Definitions
+ARG PYTHON=3.11
+ARG KGCN="==3.1"
+ARG PROB="==0.23" #TF 2.15 is compatible with 0.23
+ARG RDKIT="==2023.9.1" # required for osmodred; for compatibility the same version is used everywhere
+ARG JNN=j8
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies (no CUDA packages)
+RUN apt-get -qq update --fix-missing && apt-get update && apt-get -y install ash curl &&\
+        /bin/ash -c 'set -ex && ARC=`uname -m` && if [ "$ARCH" != "$ARC" ]; then echo "incorrect platform: $ARCH != $ARC" && false; else apt-get -y \
+        --no-install-recommends install apt-utils openjdk-8-jdk openjdk-11-jdk vim tar wget locate zip unzip iputils-ping python$PYTHON python3-pip \
+        git authbind wait-for-it software-properties-common screen libgomp1 libopenblas-base libomp-dev ca-certificates libglib2.0-0 libxext6 libsm6 \
+        libxrender1 rsync curl ash htop libssl-dev build-essential &&\
+        git clone https://gitlab.kitware.com/cmake/cmake.git && cd cmake && ./bootstrap && make -$JNN && make install && cd .. && rm -rf cmake; fi'
+
+# Upload a directory required
+COPY docker/lib64 /
+
+ARG HOME=/etc/ochem
+ARG SOURCE=/etc/source
+ARG WGET="wget --no-check-certificate -q"
+ARG GITDIR=/tmp/ochem-external-tools/
+ENV GIT_SSL_NO_VERIFY=true
+ARG PIP="$HOME/.local/bin/uv pip"
+
+#Installing external tools from OpenOchem source repositories
+RUN cd /tmp ; git clone https://github.com/openochem/ochem-external-tools.git &&\
+# copy to correct place
+	mkdir $HOME && cd $HOME && cp -r $GITDIR/ochem/ . && mkdir -p /etc/cs_servers && mkdir -p $SOURCE && cp -r $GITDIR/* $SOURCE && rm -rf $GITDIR &&\
+# GSFRAG
+	cd $SOURCE/gsfrag/source && bash make.sh && mv gsfrag ../gsfrag-${ARCH} && mv gsfragl ../gsfragl-${ARCH} &&\
+#R latest version
+	apt update && apt install -y r-base && /usr/bin/Rscript -e 'install.packages("pls",repos="https://cran.rstudio.com/")' &&\
+	/usr/bin//Rscript -e 'install.packages("randomForest",repos="https://cran.rstudio.com")' 
+
+#Tomcats
+# Newer versions of tomcat do not work
+ARG apacheversion="9.0.89"
+ARG TOM=9
+ARG apachetomcat="apache-tomcat-"$apacheversion
+ARG conf_dir="$HOME/ochem/conf"
+RUN cd && $WGET https://archive.apache.org/dist/tomcat/tomcat-$TOM/v$apacheversion/bin/$apachetomcat.zip && unzip $apachetomcat.zip &&\
+	cp -r $apachetomcat "$HOME/ochem-tomcat" && rm -rf "$HOME/ochem-tomcat/webapps/ROOT" && mv $apachetomcat "$HOME/metaserver-tomcat" &&\
+	rm -rf $apachetomcat.zip && ln -sf $conf_dir/tomcat/ochem-server.xml $HOME/ochem-tomcat/conf/server.xml &&\
+	ln -sf $conf_dir/tomcat/metaserver-server.xml $HOME/metaserver-tomcat/conf/server.xml && mkdir /etc/ochem/cs_release && cd $HOME &&\
+	zip -9 -r /home/ochem.zip *
+
+#START UV Python setup (no CUDA paths)
+ENV OCHEMENV=base
+ENV PATH="/opt/python/bin:$HOME/.local/bin:$PATH"
+ENV PYTHONPATH=/opt/python/lib/python$PYTHON/site-packages
+
+# Install uv and Python
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh &&\
+	$HOME/.local/bin/uv python install $PYTHON &&\
+	$HOME/.local/bin/uv venv /opt/python --python $PYTHON
+
+# Install basic scientific packages
+RUN . /opt/python/bin/activate &&\
+	$PIP install rdkit$RDKIT git+https://github.com/bp-kelley/descriptastorus texttable &&\
+	apt-get update && apt-get install -y libarchive-dev pkg-config
+
+# Install ML packages
+RUN . /opt/python/bin/activate &&\
+	$PIP install openbabel-wheel scikit-learn lightgbm xgboost catboost molvs
+
+# Install TensorFlow for Apple Silicon (with Metal support)
+RUN . /opt/python/bin/activate &&\
+	$PIP install tensorflow$TENSOR protobuf 
+
+# Install PyTorch for Apple Silicon (CPU optimized)
+RUN . /opt/python/bin/activate &&\
+	$PIP install $TORCH
+
+# Install additional Python packages
+RUN . /opt/python/bin/activate &&\
+	$PIP install h5py Pebble matplotlib keras tensorboardX pyyaml xlrd mysql.connector opencv-python tables fire sympy mhfp
+
+# Install specialized packages - Part 1 (Git packages)
+RUN . /opt/python/bin/activate &&\
+	$PIP install git+https://github.com/mordred-descriptor/mordred
+
+# Install specialized packages - Part 2 (Standard packages) 
+RUN . /opt/python/bin/activate &&\
+	$PIP install chainer line_profiler pudb
+
+RUN . /opt/python/bin/activate &&\
+	$PIP install torch-sparse torch-geometric
+
+# Install specialized packages - Part 5 (Numeric and utility packages)
+RUN . /opt/python/bin/activate &&\
+	$PIP install numpy fastcluster pybind11 &&\
+	$PIP install numba &&\
+	$PIP install Levenshtein  &&\
+	$PIP install cddd-onnx
+
+# Install additional TensorFlow packages (Apple Silicon optimized)
+RUN . /opt/python/bin/activate &&\
+	$PIP install tensorflow$TENSOR fastprop sympy numpy deepchem==2.8.0 gpflow tensorflow-probability$PROB scipy pandas
+
+# Install PyMOL from source
+#RUN . /opt/python/bin/activate &&\
+#	cd /tmp && git clone https://github.com/schrodinger/pymol-open-source.git &&\
+#	cd pymol-open-source && apt-get update && apt-get install -y libnetcdf-dev &&\
+#	$PIP install . && cd /tmp && rm -rf pymol-open-source &&\
+#	ln -sf /opt/python/bin/pymol /usr/bin/pymol
+
+# Install xtb-python dependencies
+#RUN . /opt/python/bin/activate &&\
+#	$PIP install xtb 
+
+ARG EXTENDED=true
+
+#Installing external tools for both platforms
+# Mold2
+RUN\
+	if [ "$EXTENDED" = "true" ] ; then\
+	mkdir -p $SOURCE/mold2/ && $WGET 'https://www.fda.gov/files/science%20&%20research/published/Mold2-Executable-File.zip' &&\
+	unzip Mold2-Executable-File.zip && cp Mold2/Linux_x86-64/Mold2 $SOURCE/mold2/mold2-linux && rm -rf Mold2* &&\
+# MOPAC2016
+	cd && mkdir -p /etc/source/mopac2016 && mkdir mop && cd mop && curl -s http://openmopac.net/MOPAC2016_for_Linux_64_bit.zip --output MOPAC2016_for_Linux_64_bit.zip &&\
+	unzip MOPAC2016_for_Linux_64_bit.zip && cp MOPAC2016.exe /etc/source/mopac2016/MOPAC2016-linux && cd && rm -rf mop &&\
+#SIGMA profiles
+	git clone https://github.com/lvpp/sigma.git && cp sigma/MOPAC/POA1.rm1 /etc/source/mopac2016/ && rm -rf sigma \
+	; else true ; fi
+
+### For China code below does not install yet; can be still debugged to make it working
+RUN\
+	if [ "$CHINA" = "" ] ; then\
+#Fragmentor
+	apt-get update && apt-get -y install cmake &&\
+	mkdir -p $SOURCE/fragmentor/ && $WGET https://web.archive.org/web/20150219162247/http://infochim.u-strasbg.fr/recherche/Download/Fragmentor/Fragmentor2014_Linux-64bit &&\
+	mv Fragmentor2014_Linux-64bit $SOURCE/fragmentor/isida-fragmentor-linux &&\
+#OpenBabel 2.4.1 required for spectrophores
+	cd && $WGET https://github.com/openbabel/openbabel/archive/refs/tags/openbabel-2-4-1.tar.gz && tar -zxf openbabel-2-4-1.tar.gz &&\
+	rm openbabel-2-4-1.tar.gz && cd openbabel-openbabel-2-4-1 &&\
+	if [ "$ARCH" = "aarch64" ] ; then\
+		sed -i 's|-119|137|' src/formats/pngformat.cpp && sed -i 's|-16|240|' src/formats/yasaraformat.cpp\
+	; else true ; fi &&\
+	mkdir build && cd build/ && /usr/bin/cmake .. && make -$JNN && make install && cd && rm -rf openbabel* &&\
+#silicos-it
+	cd && mkdir -p $SOURCE/silicos-it && git clone https://github.com/silicos-it/strip-it.git && cd strip-it && /usr/bin/cmake CMakeLists.txt && make -$JNN &&\
+	if [ "$ARCH" = "x86_64" ] ; then\
+	cp strip-it $SOURCE/silicos-it/strip-it-linux\
+	; else cp strip-it $SOURCE/silicos-it/strip-it-${ARCH} ; fi &&\
+	cd && rm -rf strip-it &&\
+#KRAKENX
+	cd && git clone https://gitlab.com/vishsoft/krakenx.git && cd krakenx/build && bash build.sh && cp KrakenX.jar /etc/source/mopac2016 &&\
+	cd && rm -rf krakenx && rm -rf /etc/source/mopac2016/mopac.txt /etc/source/mopac2016/mols.txt \
+	; else true ; fi
+
+#enable if full version is required (or disable)
+#ARG FIRM=true 
+#COPY ./firm/source /etc/source
+
+RUN\
+	if [ "$FIRM" = "true" ] ; then\
+	apt-get update && apt-get install -y build-essential libstdc++6 && cd /etc/source/smilesxy && python setup.py install \ 
+	; else true ; fi
+
+#See bug https://stackoverflow.com/questions/79547083/no-module-named-distutils-msvccompiler-after-using-f2py
+RUN sed -i 's|from distutils.msvccompiler import get_build_version as get_build_msvc_version||' /opt/python/lib/python3.11/site-packages/numpy/distutils/mingw32ccompiler.py
+
+#making executable
+RUN chmod -R +x $SOURCE && chmod 777 -R $SOURCE && chmod 777 -R /etc/cs_servers && chmod 777 /var/run/screen &&\
+	mkdir /ochem && apt-get clean && updatedb && rm -rf $HOME/* 
+
+ARG VERSION_OCHEM="4.3.183" # version compatible with this image
+
+# Apple Silicon optimized environment variables (no CUDA)
+ENV PATH="/usr/lib/jvm/java-8-openjdk-arm64/jre/bin:$PATH"
+ENV JAVA_HOME="/usr/lib/jvm/java-8-openjdk-arm64"
+ENV SCREENDIR=/tmp/.screen
+ENV OMP_NUM_THREADS=12
+ENV OPENBLAS_NUM_THREADS=12
+ENV MKL_NUM_THREADS=12
+ENV OCHEM="$VERSION_OCHEM"
+
+# Apple Silicon specific optimizations
+ENV PYTORCH_ENABLE_MPS_FALLBACK=1
+ENV TENSORFLOW_ENABLE_GPU_MEMORY_GROWTH=true
+ENV METAL_DEVICE_WRAPPER_TYPE=1
+ENV METAL_PERFORMANCE_SHADERS_ENABLED=1
