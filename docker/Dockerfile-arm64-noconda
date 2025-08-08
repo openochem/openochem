@@ -1,7 +1,11 @@
-# OpenOchem Dockerfile optimized for Apple M* macs: No CUDA/Conda dependencies - not working correctly yet
+# OpenOchem Dockerfile optimized for Apple macs: No CUDA/Conda dependencies
 FROM ubuntu:22.04
 
-ARG ARCH=aarch64
+ARG ARCH=x86_64
+
+#ARG ARCH=aarch64
+#COPY docker/lib64 /
+
 ARG TORCH="torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1"
 ARG TENSOR="==2.15.1"
 
@@ -22,7 +26,6 @@ RUN apt-get -qq update --fix-missing && apt-get update && apt-get -y install ash
         git clone https://gitlab.kitware.com/cmake/cmake.git && cd cmake && ./bootstrap && make -$JNN && make install && cd .. && rm -rf cmake; fi'
 
 # Upload a directory required
-COPY docker/lib64 /
 
 ARG HOME=/etc/ochem
 ARG SOURCE=/etc/source
@@ -53,7 +56,9 @@ RUN cd && $WGET https://archive.apache.org/dist/tomcat/tomcat-$TOM/v$apacheversi
 	ln -sf $conf_dir/tomcat/metaserver-server.xml $HOME/metaserver-tomcat/conf/server.xml && mkdir /etc/ochem/cs_release && cd $HOME &&\
 	zip -9 -r /home/ochem.zip *
 
-#START UV Python setup (no CUDA paths)
+RUN pip3 install --upgrade pip
+
+#START UV Python setup
 ENV OCHEMENV=base
 ENV PATH="/opt/python/bin:$HOME/.local/bin:$PATH"
 ENV PYTHONPATH=/opt/python/lib/python$PYTHON/site-packages
@@ -66,56 +71,38 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh &&\
 # Install basic scientific packages
 RUN . /opt/python/bin/activate &&\
 	$PIP install rdkit$RDKIT git+https://github.com/bp-kelley/descriptastorus texttable &&\
-	apt-get update && apt-get install -y libarchive-dev pkg-config
-
+	apt-get update && apt-get install -y libarchive-dev pkg-config &&\
 # Install ML packages
-RUN . /opt/python/bin/activate &&\
-	$PIP install openbabel-wheel scikit-learn lightgbm xgboost catboost molvs
-
+	$PIP install openbabel-wheel scikit-learn lightgbm xgboost catboost molvs &&\
 # Install TensorFlow for Apple Silicon (with Metal support)
-RUN . /opt/python/bin/activate &&\
-	$PIP install tensorflow$TENSOR protobuf 
-
+	$PIP install tensorflow$TENSOR protobuf &&\
 # Install PyTorch for Apple Silicon (CPU optimized)
-RUN . /opt/python/bin/activate &&\
-	$PIP install $TORCH
-
+	$PIP install $TORCH &&\
 # Install additional Python packages
-RUN . /opt/python/bin/activate &&\
-	$PIP install h5py Pebble matplotlib keras tensorboardX pyyaml xlrd mysql.connector opencv-python tables fire sympy mhfp
-
-# Install specialized packages - Part 1 (Git packages)
-RUN . /opt/python/bin/activate &&\
-	$PIP install git+https://github.com/mordred-descriptor/mordred
-
-# Install specialized packages - Part 2 (Standard packages) 
-RUN . /opt/python/bin/activate &&\
-	$PIP install chainer line_profiler pudb
-
-RUN . /opt/python/bin/activate &&\
-	$PIP install torch-sparse torch-geometric
-
-# Install specialized packages - Part 5 (Numeric and utility packages)
-RUN . /opt/python/bin/activate &&\
+	$PIP install h5py Pebble matplotlib keras tensorboardX pyyaml xlrd mysql.connector opencv-python tables fire sympy mhfp &&\
+# Install specialized packages
+	$PIP install git+https://github.com/mordred-descriptor/mordred &&\
+	$PIP install chainer line_profiler pudb &&\
+	$PIP install torch-sparse torch-geometric &&\
 	$PIP install numpy fastcluster pybind11 &&\
 	$PIP install numba &&\
 	$PIP install Levenshtein  &&\
-	$PIP install cddd-onnx
-
-# Install additional TensorFlow packages (Apple Silicon optimized)
-RUN . /opt/python/bin/activate &&\
+	$PIP install cddd-onnx &&\
 	$PIP install tensorflow$TENSOR fastprop sympy numpy deepchem==2.8.0 gpflow tensorflow-probability$PROB scipy pandas
 
 # Install PyMOL from source
-#RUN . /opt/python/bin/activate &&\
-#	cd /tmp && git clone https://github.com/schrodinger/pymol-open-source.git &&\
-#	cd pymol-open-source && apt-get update && apt-get install -y libnetcdf-dev &&\
-#	$PIP install . && cd /tmp && rm -rf pymol-open-source &&\
+#RUN apt-get update && apt-get install -y libnetcdf-dev libglew-dev libglm-dev libxml2-dev libfreetype-dev libfreetype6 libfreetype6-dev python3-dev &&\
+#	cd /tmp && git clone https://github.com/schrodinger/pymol-open-source.git && cd pymol-open-source &&\ 
+#	/usr/bin/pip3 install numpy && /usr/bin/pip3 install . && cd .. && rm -rf pymol-open-source &&\
 #	ln -sf /opt/python/bin/pymol /usr/bin/pymol
 
 # Install xtb-python dependencies
-#RUN . /opt/python/bin/activate &&\
-#	$PIP install xtb 
+RUN . /opt/python/bin/activate &&\
+        if [ "$ARCH" = "x86_64" ] ; then\
+        $PIP install xtb && $PIP install kgcnn$KGCN  &&\
+        sed -i 's|epsilon=1e-3|epsilon=1e-7|' /opt/python/lib/python$PYTHON/site-packages/kgcnn/layers_core/norm.py &&\
+        sed -i 's|epsilon=1e-3|epsilon=1e-7|' /opt/python/lib/python$PYTHON/site-packages/kgcnn/layers/norm.py \
+        ; else true; fi
 
 ARG EXTENDED=true
 
@@ -176,8 +163,6 @@ RUN chmod -R +x $SOURCE && chmod 777 -R $SOURCE && chmod 777 -R /etc/cs_servers 
 ARG VERSION_OCHEM="4.3.183" # version compatible with this image
 
 # Apple Silicon optimized environment variables (no CUDA)
-ENV PATH="/usr/lib/jvm/java-8-openjdk-arm64/jre/bin:$PATH"
-ENV JAVA_HOME="/usr/lib/jvm/java-8-openjdk-arm64"
 ENV SCREENDIR=/tmp/.screen
 ENV OMP_NUM_THREADS=12
 ENV OPENBLAS_NUM_THREADS=12
